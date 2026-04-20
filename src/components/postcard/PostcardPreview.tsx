@@ -186,7 +186,7 @@ export function PostcardPreview({ sending = false, isEmpty = false }: PostcardPr
               <p className="font-serif text-[15px] italic pb-1.5 mb-1.5 border-b border-[var(--color-cream-3)]" style={{ color: 'var(--color-ink)' }}>
                 {addrTo}
               </p>
-              {['Your Teaching Mentor', 'CoVAA Platform', 'Singapore'].map((line) => (
+              {['STP Feedback AI', 'CoVAA Platform', 'Singapore'].map((line) => (
                 <p key={line} className="text-[9px] pb-0.5 mb-0.5 border-b border-[var(--color-cream-3)] leading-[1.75]" style={{ color: 'var(--color-ink-3)' }}>
                   {line}
                 </p>

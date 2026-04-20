@@ -10,7 +10,7 @@ import { Toaster } from '@/components/ui/sonner'
 
 const FLOW_LABELS: Record<string, string> = {
   write:           'Get Feedback',
-  transit:         'Feedback Letters',
+  transit:         'All Feedback',
   discover:        'Community',
   settings:        'Learning Goals',
   'letter-detail': 'Letter',

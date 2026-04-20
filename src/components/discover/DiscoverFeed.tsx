@@ -85,37 +85,48 @@ export function DiscoverFeed({ onGoWrite }: { onGoWrite: () => void }) {
           </div>
         </div>
 
-        {/* Card grid — wider, 3 cols at xl */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-          {visible.map((card) => (
+        {/* Card grid — two columns max to keep the community scan lighter */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {visible.map((card) => {
+            const teacherName = card.teacherName ?? card.who
+            return (
             <Card
               key={card._key}
               className="relative cursor-pointer hover:-translate-y-1 hover:shadow-md transition-all duration-150 overflow-visible shadow-sm"
               style={{ background: 'oklch(1 0 0)' }}
               onClick={() => { setSelectedLetter(card.id + 100); setFlow('letter-detail') }}
             >
-              {/* Stamp */}
-              <div className="absolute top-3 right-3" style={{ transform: 'rotate(1.5deg)', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.09))' }}>
+              <div className="absolute top-4 right-4" style={{ transform: 'rotate(1.5deg)', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.09))' }}>
                 <StampSVGSmall id={card.stamp} maskSuffix={`-card-${card._key}`} />
               </div>
 
               <CardContent className="pt-4 pb-3 pr-14">
-                <p className="text-[9px] font-semibold uppercase tracking-[2px] text-muted-foreground mb-2">
-                  {card.eyebrow}
-                </p>
+                <div className="mb-4 flex items-center gap-3">
+                  <div
+                    className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white shadow-sm"
+                    style={{ backgroundColor: card.avatarColor ?? '#64748B' }}
+                  >
+                    {card.avatarLabel ?? 'T'}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-foreground">{teacherName}</p>
+                    <p className="truncate text-xs text-muted-foreground">{card.school}</p>
+                  </div>
+                </div>
+                <p className="text-[9px] font-semibold uppercase tracking-[2px] text-muted-foreground mb-2">{card.eyebrow}</p>
                 <p className="font-serif text-sm italic leading-relaxed text-foreground mb-4">
                   {card.body}
                 </p>
                 <Separator className="mb-3" />
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">{card.who} · {card.time}</span>
+                  <span className="text-xs text-muted-foreground">{teacherName} · {card.time}</span>
                   <Button
                     variant="link"
                     size="sm"
                     className="p-0 h-auto text-primary text-xs font-semibold"
                     onClick={(e) => {
                       e.stopPropagation()
-                      setModalTo(`Writing back to ${card.who} about their ${card.eyebrow.toLowerCase()} lesson.`)
+                      setModalTo(`Writing back to ${teacherName} about their ${card.eyebrow.toLowerCase()} lesson.`)
                       setModalOpen(true)
                     }}
                   >
@@ -124,7 +135,8 @@ export function DiscoverFeed({ onGoWrite }: { onGoWrite: () => void }) {
                 </div>
               </CardContent>
             </Card>
-          ))}
+            )
+          })}
         </div>
 
         {/* Infinite scroll sentinel */}

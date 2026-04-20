@@ -17,6 +17,12 @@ const MOCK_LETTERS: FeedbackLetter[] = [
     sentAt: '2 hours ago',
     status: 'in_transit',
     isNew: false,
+    personName: 'STP Feedback AI',
+    sourceType: 'ai',
+    schoolOrRole: 'Singapore Teaching Practice',
+    avatarLabel: '✦',
+    avatarColor: '#7C3AED',
+    relationship: 'sent',
   },
   {
     id: 2,
@@ -26,6 +32,12 @@ const MOCK_LETTERS: FeedbackLetter[] = [
     sentAt: '3 days ago',
     status: 'replied',
     isNew: false,
+    personName: 'Sarah',
+    sourceType: 'teacher',
+    schoolOrRole: 'Greenridge Primary',
+    avatarLabel: 'S',
+    avatarColor: '#0D9488',
+    relationship: 'shared',
   },
   {
     id: 3,
@@ -35,6 +47,12 @@ const MOCK_LETTERS: FeedbackLetter[] = [
     sentAt: '1 week ago',
     status: 'replied',
     isNew: false,
+    personName: 'STP Feedback AI',
+    sourceType: 'ai',
+    schoolOrRole: 'Singapore Teaching Practice',
+    avatarLabel: '✦',
+    avatarColor: '#7C3AED',
+    relationship: 'shared',
   },
   {
     id: 4,
@@ -44,15 +62,150 @@ const MOCK_LETTERS: FeedbackLetter[] = [
     sentAt: 'Yesterday',
     status: 'replied',
     isNew: false,
+    personName: 'STP Feedback AI',
+    sourceType: 'ai',
+    schoolOrRole: 'Singapore Teaching Practice',
+    avatarLabel: '✦',
+    avatarColor: '#7C3AED',
+    relationship: 'shared',
   },
+  {
+    id: 200,
+    lesson: 'P4 Mathematics - Word Problems',
+    stamp: 'assessment',
+    recipients: ['Marcus'],
+    sentAt: 'This morning',
+    status: 'sent',
+    isNew: false,
+    personName: 'Marcus',
+    sourceType: 'teacher',
+    schoolOrRole: 'North View Primary',
+    avatarLabel: 'M',
+    avatarColor: '#2563EB',
+    relationship: 'toRespond',
+  },
+  {
+    id: 201,
+    lesson: 'P2 English - Guided Reading',
+    stamp: 'culture',
+    recipients: ['Sarah'],
+    sentAt: 'Yesterday',
+    status: 'sent',
+    isNew: false,
+    personName: 'Sarah',
+    sourceType: 'teacher',
+    schoolOrRole: 'Greenridge Primary',
+    avatarLabel: 'S',
+    avatarColor: '#0D9488',
+    relationship: 'toRespond',
+  },
+  {
+    id: 202,
+    lesson: 'P5 Science – Circuits',
+    stamp: 'enactment',
+    recipients: ['James'],
+    sentAt: 'Last week',
+    status: 'sent',
+    isNew: false,
+    personName: 'James',
+    sourceType: 'teacher',
+    schoolOrRole: 'Riverside Primary',
+    avatarLabel: 'J',
+    avatarColor: '#D97706',
+    relationship: 'sent',
+  },
+]
+
+const COMMUNITY_REPLY_LETTERS: FeedbackLetter[] = [
   {
     id: 101,
     lesson: 'Year 4 Maths – Transitions',
     stamp: 'preparation',
-    recipients: ['A teacher in Tampines'],
-    sentAt: '2 hours ago',
+    recipients: ['Nadia Lim'],
+    sentAt: 'Just now',
     status: 'sent',
     isNew: false,
+    personName: 'Nadia Lim',
+    sourceType: 'teacher',
+    schoolOrRole: 'Tampines Primary',
+    avatarLabel: 'NL',
+    avatarColor: '#2563EB',
+    relationship: 'sent',
+  },
+  {
+    id: 102,
+    lesson: 'Year 8 English – Cold-calling',
+    stamp: 'assessment',
+    recipients: ['Farah Tan'],
+    sentAt: 'Just now',
+    status: 'sent',
+    isNew: false,
+    personName: 'Farah Tan',
+    sourceType: 'teacher',
+    schoolOrRole: 'Bedok View School',
+    avatarLabel: 'FT',
+    avatarColor: '#0D9488',
+    relationship: 'sent',
+  },
+  {
+    id: 103,
+    lesson: 'Year 6 Science – Lesson Structure',
+    stamp: 'culture',
+    recipients: ['Chen Wei'],
+    sentAt: 'Just now',
+    status: 'sent',
+    isNew: false,
+    personName: 'Chen Wei',
+    sourceType: 'teacher',
+    schoolOrRole: 'Jurong West Primary',
+    avatarLabel: 'CW',
+    avatarColor: '#C86948',
+    relationship: 'sent',
+  },
+  {
+    id: 104,
+    lesson: 'P3 English – Group Roles',
+    stamp: 'other',
+    recipients: ['Mei Wong'],
+    sentAt: 'Just now',
+    status: 'sent',
+    isNew: false,
+    personName: 'Mei Wong',
+    sourceType: 'teacher',
+    schoolOrRole: 'Woodlands Ring Primary',
+    avatarLabel: 'MW',
+    avatarColor: '#6B4E7C',
+    relationship: 'sent',
+  },
+  {
+    id: 105,
+    lesson: 'Year 10 History – Lesson Pacing',
+    stamp: 'enactment',
+    recipients: ['Arun Raj'],
+    sentAt: 'Just now',
+    status: 'sent',
+    isNew: false,
+    personName: 'Arun Raj',
+    sourceType: 'teacher',
+    schoolOrRole: 'Buona Vista Secondary',
+    avatarLabel: 'AR',
+    avatarColor: '#D97706',
+    relationship: 'sent',
+  },
+  {
+    id: 106,
+    lesson: 'P5 Mathematics – Checking Understanding',
+    stamp: 'preparation',
+    recipients: ['Grace Lee'],
+    sentAt: 'Just now',
+    status: 'sent',
+    isNew: false,
+    personName: 'Grace Lee',
+    sourceType: 'teacher',
+    schoolOrRole: 'Ang Mo Kio Primary',
+    avatarLabel: 'GL',
+    avatarColor: '#4A7C59',
+    relationship: 'sent',
   },
 ]
 
@@ -69,6 +222,15 @@ function LetterCard({
 }) {
   const canOpen = true
   const isNewReply = letter.status === 'replied' && letter.isNew
+  const statusText = letter.relationship === 'toRespond'
+    ? `Requested by ${letter.personName}`
+    : letter.status === 'in_transit'
+      ? letter.recipients.includes('STP Feedback AI')
+        ? 'STP Feedback AI is drafting a reply'
+        : 'Sent - reply pending'
+      : letter.status === 'replied'
+        ? letter.isNew ? 'New feedback received' : 'Feedback received'
+        : 'Sent'
 
   return (
     <motion.div
@@ -88,21 +250,37 @@ function LetterCard({
       tabIndex={canOpen ? 0 : undefined}
       onKeyDown={(e) => { if (canOpen && (e.key === 'Enter' || e.key === ' ')) onViewDetail(letter.id) }}
     >
-      <div className="relative flex items-start gap-3.5 p-4">
-        {/* Envelope icon */}
-        <motion.span
-          className="text-xl mt-0.5 shrink-0 select-none"
+      <div className="relative flex items-start gap-4 p-4">
+        <motion.div
+          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white shadow-sm"
+          style={{ backgroundColor: letter.avatarColor ?? '#64748B' }}
           animate={isNewReply ? { rotate: [0, -8, 6, -3, 0], y: [0, -2, 0] } : {}}
           transition={{ duration: 0.8, delay: 0.2, ease: [0.34, 1.3, 0.64, 1] }}
-          aria-hidden="true"
+          aria-label={`${letter.personName} avatar`}
         >
-          {letter.status === 'replied' ? (letter.isNew ? '📬' : '✉️') : '📤'}
-        </motion.span>
+          {letter.sourceType === 'ai' ? '✦' : letter.avatarLabel}
+        </motion.div>
 
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
-            <div className="flex min-w-0 items-center gap-2">
+            <div className="min-w-0">
+              <div className="flex min-w-0 items-center gap-2">
+                <p className="truncate text-base font-semibold leading-tight text-foreground">{letter.personName}</p>
+              </div>
+              <p className="truncate text-[11px] text-muted-foreground">{letter.schoolOrRole}</p>
+            </div>
+            <span className="text-[10px] text-muted-foreground shrink-0 pt-px">{letter.sentAt}</span>
+          </div>
+
+          <div className="mt-2 flex items-start justify-between gap-2">
+            <div className="min-w-0">
               <p className="truncate text-sm font-semibold leading-snug text-foreground">{letter.lesson}</p>
+              {letter.relationship !== 'shared' && (
+                <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
+                  {letter.relationship === 'toRespond' ? 'Waiting for your feedback' : `Sent to ${letter.personName}`}
+                </p>
+              )}
+            </div>
               {isNewReply && (
                 <motion.span
                   initial={{ opacity: 0, scale: 0.92 }}
@@ -113,10 +291,7 @@ function LetterCard({
                   New
                 </motion.span>
               )}
-            </div>
-            <span className="text-[10px] text-muted-foreground shrink-0 pt-px">{letter.sentAt}</span>
           </div>
-          <p className="text-[11px] text-muted-foreground mt-0.5 truncate">{letter.recipients.join(', ')}</p>
 
           {/* Status */}
           <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
@@ -131,16 +306,11 @@ function LetterCard({
             />
             <span className={cn(
               'text-[10px] font-semibold',
+              letter.relationship === 'toRespond' ? 'text-primary' :
               letter.status === 'in_transit' ? 'text-amber-600' :
               letter.status === 'replied' ? 'text-blue-600' : 'text-emerald-600'
             )}>
-              {letter.status === 'in_transit'
-                ? letter.recipients.includes('STP Feedback AI')
-                  ? 'STP Feedback AI is drafting a reply — coming soon'
-                  : 'Sent — reply pending'
-                : letter.status === 'replied'
-                  ? letter.isNew ? 'New reply received ✦' : 'Reply received'
-                  : 'Response sent'}
+              {statusText}
             </span>
           </div>
         </div>
@@ -161,10 +331,11 @@ function LetterCard({
 
 // ─── empty state ─────────────────────────────────────────────────────────────
 
-function EmptyState({ tab }: { tab: 'received' | 'sent' }) {
-  const messages: Record<'received' | 'sent', { icon: string; text: string }> = {
-    received: { icon: '📭', text: "No replies yet — they'll appear here when someone writes back." },
-    sent: { icon: '📤', text: 'No sent letters yet.' },
+function EmptyState({ tab }: { tab: 'shared' | 'toRespond' | 'sent' }) {
+  const messages: Record<'shared' | 'toRespond' | 'sent', { icon: string; text: string }> = {
+    shared: { icon: '📭', text: "No feedback yet - it'll appear here when someone writes back." },
+    toRespond: { icon: '✍️', text: 'No direct feedback requests yet.' },
+    sent: { icon: '📤', text: 'No sent feedback requests yet.' },
   }
   const { icon, text } = messages[tab]
   return (
@@ -192,6 +363,7 @@ export function MyLetters() {
     myLettersTab,
     setMyLettersTab,
     markReplySeen,
+    sentFeedbackIds,
   } = useLetterboxStore(
     useShallow((s) => ({
       setFlow: s.setFlow,
@@ -201,14 +373,22 @@ export function MyLetters() {
       myLettersTab: s.myLettersTab,
       setMyLettersTab: s.setMyLettersTab,
       markReplySeen: s.markReplySeen,
+      sentFeedbackIds: s.sentFeedbackIds,
     }))
   )
 
   const demoStarted = !!sentDemoLetter || !!receivedDemoLetter
-  const staticReceived = MOCK_LETTERS.filter((l) => l.status === 'replied')
-  const staticSent = MOCK_LETTERS.filter((l) => l.status === 'in_transit' || l.status === 'sent')
-  const received = receivedDemoLetter ? [receivedDemoLetter, ...staticReceived] : staticReceived
-  const sent = demoStarted ? (sentDemoLetter ? [sentDemoLetter] : []) : staticSent
+  const staticShared = MOCK_LETTERS.filter((l) => l.relationship === 'shared')
+  const toRespond = MOCK_LETTERS.filter((l) => l.relationship === 'toRespond' && !sentFeedbackIds.includes(l.id))
+  const staticSent = MOCK_LETTERS.filter((l) => l.relationship === 'sent')
+  const completedResponses = [
+    ...MOCK_LETTERS.filter((l) => l.relationship === 'toRespond'),
+    ...COMMUNITY_REPLY_LETTERS,
+  ]
+    .filter((l) => sentFeedbackIds.includes(l.id))
+    .map((l) => ({ ...l, relationship: 'sent' as const, status: 'sent' as const, sentAt: 'Just now' }))
+  const shared = receivedDemoLetter ? [receivedDemoLetter, ...staticShared] : staticShared
+  const sent = demoStarted ? (sentDemoLetter ? [sentDemoLetter] : completedResponses) : [...completedResponses, ...staticSent]
 
   function handleViewDetail(id: number) {
     markReplySeen(id)
@@ -219,12 +399,18 @@ export function MyLetters() {
   return (
     <div className="space-y-5">
       {/* Tabs */}
-      <Tabs value={myLettersTab} onValueChange={(v) => setMyLettersTab(v as 'received' | 'sent')}>
+      <Tabs value={myLettersTab} onValueChange={(v) => setMyLettersTab(v as 'shared' | 'toRespond' | 'sent')}>
         <TabsList className="w-full bg-black/[0.07]">
-          <TabsTrigger value="received" className="flex-1 text-xs">
-            Received
-            {received.length > 0 && (
-              <span className="ml-1.5 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-blue-100 text-blue-600">{received.length}</span>
+          <TabsTrigger value="shared" className="flex-1 text-xs">
+            Shared with you
+            {shared.length > 0 && (
+              <span className="ml-1.5 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-blue-100 text-blue-600">{shared.length}</span>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="toRespond" className="flex-1 text-xs">
+            To respond
+            {toRespond.length > 0 && (
+              <span className="ml-1.5 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-primary/10 text-primary">{toRespond.length}</span>
             )}
           </TabsTrigger>
           <TabsTrigger value="sent" className="flex-1 text-xs">
@@ -235,8 +421,8 @@ export function MyLetters() {
           </TabsTrigger>
         </TabsList>
 
-        {(['received', 'sent'] as const).map((tabId) => {
-          const letters = tabId === 'received' ? received : sent
+        {(['shared', 'toRespond', 'sent'] as const).map((tabId) => {
+          const letters = tabId === 'shared' ? shared : tabId === 'toRespond' ? toRespond : sent
           return (
             <TabsContent key={tabId} value={tabId} className="mt-4">
               <AnimatePresence mode="wait">
@@ -279,7 +465,7 @@ export function MyLetters() {
           className="text-blue-600 font-medium hover:underline underline-offset-2"
           onClick={() => useLetterboxStore.getState().setFlow('discover')}
         >
-          browse Community letters from other teachers →
+          browse Community letters →
         </button>
       </motion.p>
     </div>

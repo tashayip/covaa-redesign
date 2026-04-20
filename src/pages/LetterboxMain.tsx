@@ -193,8 +193,8 @@ function ContactSelector({ showError }: { showError?: boolean }) {
 
 const PROCESS_STEPS = [
   { icon: '🎬', label: 'Record', desc: 'Film your lesson — phone on a tripod works fine' },
-  { icon: '✉️', label: 'Share',  desc: 'Upload a link or file and write what you want feedback on' },
-  { icon: '💌', label: 'Receive', desc: 'Get a thoughtful letter back from your mentor, peers, or STP Feedback AI' },
+  { icon: '✉️', label: 'Share with STP Feedback AI or other colleagues',  desc: 'Upload a link or file and write a letter about what you want feedback on' },
+  { icon: '💌', label: 'Receive feedback from peers or STP Feedback AI', desc: 'Get a thoughtful letter back from your mentor, peers, or STP Feedback AI' },
 ]
 
 function Step1({ onNext }: { onNext: () => void }) {
@@ -459,7 +459,7 @@ function Step4({ onBack, onSend, sending }: { onBack: () => void; onSend: () => 
 
         {/* Feedback ask */}
         <div>
-          <FormLabel required>What do you want to know?</FormLabel>
+          <FormLabel required>What feedback do you need from others?</FormLabel>
           <Textarea
             className="min-h-[120px] resize-none font-serif italic text-[13.5px] leading-[1.75]"
             placeholder={`e.g. Was my pacing right after the group task? Did students have time to think before I moved on?`}
@@ -568,6 +568,10 @@ export function LetterboxMain() {
       if (!demoReplyTimer) {
         demoReplyTimer = setTimeout(() => {
           receiveDemoReply()
+          toast.success('You have new mail', {
+            description: 'STP Feedback AI has replied to P4 English - Creative Writing.',
+            duration: 6500,
+          })
           demoReplyTimer = null
         }, 10000)
       }
@@ -578,12 +582,12 @@ export function LetterboxMain() {
   }
 
   const pageTitle =
-    flow === 'transit'  ? 'Feedback Letters' :
-    flow === 'discover' ? 'Community' :
+    flow === 'transit'  ? 'All Feedback' :
+    flow === 'discover' ? 'From the community' :
     wizardStep === 1 ? 'How does this work?' :
     wizardStep === 2 ? 'What would you like feedback on?' :
     wizardStep === 3 ? 'Describe your lesson' :
-                       'Your ask'
+                       'Give more context on what feedback you need'
 
   const pageSubtitle =
     flow === 'transit'  ? 'Letters you have received and letters you have sent to others or STP Feedback AI.' :

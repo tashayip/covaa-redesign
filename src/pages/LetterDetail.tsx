@@ -3,7 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useLetterboxStore } from '@/store/letterbox-store'
 import { useShallow } from 'zustand/react/shallow'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { Textarea } from '@/components/ui/textarea'
+import { Button } from '@/components/ui/button'
 import { Lightbulb, Eye, Sparkles } from 'lucide-react'
+import { toast } from 'sonner'
 
 // ─── STP framework data ──────────────────────────────────────────────────────
 
@@ -118,6 +121,12 @@ interface MockLetterData {
   ask: string
   status: 'in_transit' | 'replied'
   from: string
+  sourceType?: 'ai' | 'teacher'
+  schoolOrRole?: string
+  avatarLabel?: string
+  avatarColor?: string
+  relationship?: 'shared' | 'toRespond' | 'sent'
+  requestedFor?: string
   hasAiFeedback?: boolean
   letter?: {
     greeting: string
@@ -272,6 +281,11 @@ const MOCK_LETTERS: Record<number, MockLetterData> = {
     ask: 'Could STP Feedback AI look at whether my modelling gave enough structure without taking away student choice? I also want feedback on whether the pair discussion helped students improve their story ideas.',
     status: 'in_transit',
     from: 'STP Feedback AI',
+    sourceType: 'ai',
+    schoolOrRole: 'Singapore Teaching Practice',
+    avatarLabel: '✦',
+    avatarColor: '#7C3AED',
+    relationship: 'sent',
   },
   301: {
     id: 301,
@@ -286,6 +300,11 @@ const MOCK_LETTERS: Record<number, MockLetterData> = {
     ask: 'Could STP Feedback AI look at whether my modelling gave enough structure without taking away student choice? I also want feedback on whether the pair discussion helped students improve their story ideas.',
     status: 'replied',
     from: 'STP Feedback AI',
+    sourceType: 'ai',
+    schoolOrRole: 'Singapore Teaching Practice',
+    avatarLabel: '✦',
+    avatarColor: '#7C3AED',
+    relationship: 'shared',
     letter: {
       greeting: 'Dear Tasha,',
       wellDone: [
@@ -310,6 +329,48 @@ const MOCK_LETTERS: Record<number, MockLetterData> = {
       signature: '— STP Feedback AI, using the STP Framework',
     },
   },
+  200: {
+    id: 200,
+    lesson: 'P4 Mathematics - Word Problems',
+    date: 'This morning',
+    recording: {
+      type: 'video',
+      title: 'Word problems strategy lesson',
+      youtubeId: 'lhS6rpMgULM',
+    },
+    context: 'Marcus shared a P4 Mathematics lesson where pupils used bar models to unpack two-step word problems. He wants a colleague to look at whether his prompts helped pupils explain their reasoning.',
+    ask: 'Please write feedback for Marcus on what supported student reasoning and what he could tighten next time.',
+    status: 'replied',
+    from: 'Marcus',
+    sourceType: 'teacher',
+    schoolOrRole: 'North View Primary',
+    avatarLabel: 'M',
+    avatarColor: '#2563EB',
+    relationship: 'toRespond',
+    requestedFor: 'Marcus',
+    hasAiFeedback: false,
+  },
+  201: {
+    id: 201,
+    lesson: 'P2 English - Guided Reading',
+    date: 'Yesterday',
+    recording: {
+      type: 'video',
+      title: 'Guided reading group',
+      youtubeId: 'xKxrkht7CpY',
+    },
+    context: 'Sarah shared a guided reading session with a small P2 group. She is looking for feedback on how she prompted quieter pupils and checked comprehension during the reading.',
+    ask: 'Please write feedback for Sarah on what helped pupils participate and what she could improve in the next guided reading session.',
+    status: 'replied',
+    from: 'Sarah',
+    sourceType: 'teacher',
+    schoolOrRole: 'Greenridge Primary',
+    avatarLabel: 'S',
+    avatarColor: '#0D9488',
+    relationship: 'toRespond',
+    requestedFor: 'Sarah',
+    hasAiFeedback: false,
+  },
   101: {
     id: 101,
     lesson: 'Year 4 Maths – Transitions',
@@ -322,7 +383,13 @@ const MOCK_LETTERS: Record<number, MockLetterData> = {
     context: 'Year 4 Maths. I tried something new with transitions this week — moving from whole-class to pairs, then back again. I want to know if the rhythm felt right from the outside.',
     ask: 'Did the pacing between transitions feel natural? Were students ready to move each time I shifted the grouping?',
     status: 'replied',
-    from: 'A teacher in Tampines',
+    from: 'Nadia Lim',
+    sourceType: 'teacher',
+    schoolOrRole: 'Tampines Primary',
+    avatarLabel: 'NL',
+    avatarColor: '#2563EB',
+    relationship: 'toRespond',
+    requestedFor: 'Nadia Lim',
     hasAiFeedback: false,
   },
   102: {
@@ -337,7 +404,117 @@ const MOCK_LETTERS: Record<number, MockLetterData> = {
     context: "Year 8 English. There's a student in the back who never puts her hand up. I asked her directly and it landed — but I'm not sure if I handled the follow-up well.",
     ask: 'Was my cold-call handled sensitively? Did the follow-up keep her engaged or did it feel like a spotlight?',
     status: 'replied',
-    from: 'A teacher in Bedok',
+    from: 'Farah Tan',
+    sourceType: 'teacher',
+    schoolOrRole: 'Bedok View School',
+    avatarLabel: 'FT',
+    avatarColor: '#0D9488',
+    relationship: 'toRespond',
+    requestedFor: 'Farah Tan',
+    hasAiFeedback: false,
+  },
+  103: {
+    id: 103,
+    lesson: 'Year 6 Science – Lesson Structure',
+    date: 'Yesterday',
+    recording: {
+      type: 'video',
+      title: 'Science lesson structure reflection',
+      youtubeId: 'lhS6rpMgULM',
+    },
+    context: 'Year 6 Science. My lesson had a strong opening and a strong close but the middle felt loose. I could feel it slipping but did not know how to pull it back.',
+    ask: 'Was the lesson structure clear enough for students to follow, especially in the middle segment?',
+    status: 'replied',
+    from: 'Chen Wei',
+    sourceType: 'teacher',
+    schoolOrRole: 'Jurong West Primary',
+    avatarLabel: 'CW',
+    avatarColor: '#C86948',
+    relationship: 'toRespond',
+    requestedFor: 'Chen Wei',
+    hasAiFeedback: false,
+  },
+  104: {
+    id: 104,
+    lesson: 'P3 English – Group Roles',
+    date: 'Yesterday',
+    recording: {
+      type: 'video',
+      title: 'Structured group roles',
+      youtubeId: 'xKxrkht7CpY',
+    },
+    context: "Primary 3 English. First time trying structured group roles in my class. Three groups worked beautifully. One didn't.",
+    ask: 'What did I miss in the group setup, and how could I make the roles clearer next time?',
+    status: 'replied',
+    from: 'Mei Wong',
+    sourceType: 'teacher',
+    schoolOrRole: 'Woodlands Ring Primary',
+    avatarLabel: 'MW',
+    avatarColor: '#6B4E7C',
+    relationship: 'toRespond',
+    requestedFor: 'Mei Wong',
+    hasAiFeedback: false,
+  },
+  105: {
+    id: 105,
+    lesson: 'Year 10 History – Lesson Pacing',
+    date: '2 days ago',
+    recording: {
+      type: 'video',
+      title: 'History source analysis pacing',
+      youtubeId: 'lhS6rpMgULM',
+    },
+    context: 'Year 10 History. I knew I was running out of time at the 35-minute mark but kept pushing. The final discussion felt compressed.',
+    ask: 'How could I adjust the pacing without making the lesson feel abruptly cut short?',
+    status: 'replied',
+    from: 'Arun Raj',
+    sourceType: 'teacher',
+    schoolOrRole: 'Buona Vista Secondary',
+    avatarLabel: 'AR',
+    avatarColor: '#D97706',
+    relationship: 'toRespond',
+    requestedFor: 'Arun Raj',
+    hasAiFeedback: false,
+  },
+  106: {
+    id: 106,
+    lesson: 'P5 Mathematics – Checking Understanding',
+    date: '2 days ago',
+    recording: {
+      type: 'video',
+      title: 'Checking understanding in maths',
+      youtubeId: 'xKxrkht7CpY',
+    },
+    context: 'Primary 5 Mathematics. I asked "does everyone understand?" too many times and want more useful ways to check whether students are actually following.',
+    ask: 'What checks for understanding could I use in the moment without slowing the lesson too much?',
+    status: 'replied',
+    from: 'Grace Lee',
+    sourceType: 'teacher',
+    schoolOrRole: 'Ang Mo Kio Primary',
+    avatarLabel: 'GL',
+    avatarColor: '#4A7C59',
+    relationship: 'toRespond',
+    requestedFor: 'Grace Lee',
+    hasAiFeedback: false,
+  },
+  202: {
+    id: 202,
+    lesson: 'P5 Science – Circuits',
+    date: 'Last week',
+    recording: {
+      type: 'video',
+      title: 'Circuits troubleshooting lesson',
+      youtubeId: 'lhS6rpMgULM',
+    },
+    context: 'James shared a P5 Science lesson on simple circuits. I sent him feedback on how students diagnosed open and closed circuits during the group task.',
+    ask: 'I would like STP Feedback AI to review whether my feedback to James is concrete enough for him to act on.',
+    status: 'replied',
+    from: 'James',
+    sourceType: 'teacher',
+    schoolOrRole: 'Riverside Primary',
+    avatarLabel: 'J',
+    avatarColor: '#D97706',
+    relationship: 'sent',
     hasAiFeedback: false,
   },
 }
@@ -605,6 +782,50 @@ function NotesTab({ annotations, annTimeStart, annTimeEnd, annNote, setAnnTimeSt
   )
 }
 
+function HumanFeedbackForm({
+  userName,
+  draft,
+  onChange,
+  onSend,
+}: {
+  userName: string
+  draft: { wentWell: string; improve: string }
+  onChange: (patch: Partial<{ wentWell: string; improve: string }>) => void
+  onSend: () => void
+}) {
+  return (
+    <div className="space-y-4">
+      <div>
+        <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-[2px] text-muted-foreground">
+          What went well for {userName}?
+        </p>
+        <Textarea
+          className="min-h-[140px] resize-none"
+          placeholder={`Share the specific teacher moves or student responses that worked well for ${userName}.`}
+          value={draft.wentWell}
+          onChange={(e) => onChange({ wentWell: e.target.value })}
+        />
+      </div>
+      <div>
+        <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-[2px] text-muted-foreground">
+          What are the areas {userName} could improve on?
+        </p>
+        <Textarea
+          className="min-h-[140px] resize-none"
+          placeholder="Offer one or two concrete next steps they could try in the next lesson."
+          value={draft.improve}
+          onChange={(e) => onChange({ improve: e.target.value })}
+        />
+      </div>
+      <div className="flex justify-end pt-1">
+        <Button type="button" onClick={onSend} className="px-5">
+          Send feedback
+        </Button>
+      </div>
+    </div>
+  )
+}
+
 // ─── in-transit empty state ───────────────────────────────────────────────────
 
 function PendingReplyState({ from }: { from: string }) {
@@ -631,7 +852,19 @@ function PendingReplyState({ from }: { from: string }) {
 // ─── main ─────────────────────────────────────────────────────────────────────
 
 export function LetterDetail() {
-  const { selectedLetterId, setFlow, setSelectedLetter, draft, contacts, selectedIds } = useLetterboxStore(
+  const {
+    selectedLetterId,
+    setFlow,
+    setSelectedLetter,
+    draft,
+    contacts,
+    selectedIds,
+    humanFeedbackDrafts,
+    updateHumanFeedbackDraft,
+    sentFeedbackIds,
+    markFeedbackSent,
+    setMyLettersTab,
+  } = useLetterboxStore(
     useShallow((s) => ({
       selectedLetterId: s.selectedLetterId,
       setFlow: s.setFlow,
@@ -639,6 +872,11 @@ export function LetterDetail() {
       draft: s.draft,
       contacts: s.contacts,
       selectedIds: s.selectedIds,
+      humanFeedbackDrafts: s.humanFeedbackDrafts,
+      updateHumanFeedbackDraft: s.updateHumanFeedbackDraft,
+      sentFeedbackIds: s.sentFeedbackIds,
+      markFeedbackSent: s.markFeedbackSent,
+      setMyLettersTab: s.setMyLettersTab,
     }))
   )
 
@@ -678,6 +916,17 @@ export function LetterDetail() {
     setAnnotations((prev) => prev.filter((a) => a.id !== id))
   }
 
+  function handleSendHumanFeedback(targetName: string) {
+    if (!selectedLetterId) return
+    markFeedbackSent(selectedLetterId)
+    setMyLettersTab('sent')
+    setSelectedLetter(null)
+    setFlow('transit')
+    toast.success('Feedback sent', {
+      description: `Your feedback for ${targetName} is now in Sent.`,
+    })
+  }
+
   if (!data) {
     // Just-sent letter (id=0) — show pending state using draft info
     if (selectedLetterId === 0 && draft.lesson) {
@@ -688,7 +937,7 @@ export function LetterDetail() {
       return (
         <main className="w-full px-8 xl:px-12 py-8">
           <div className="mx-auto max-w-5xl">
-            <button onClick={handleBack} className="text-sm text-muted-foreground hover:text-foreground transition-colors mb-8 flex items-center gap-1.5">← Feedback Letters</button>
+            <button onClick={handleBack} className="text-sm text-muted-foreground hover:text-foreground transition-colors mb-8 flex items-center gap-1.5">← All Feedback</button>
             <div className="grid grid-cols-1 xl:grid-cols-[360px_1fr] gap-10 items-start">
               <div className="space-y-2">
                 <h2 className="text-lg font-semibold text-foreground leading-snug">{draft.lesson}</h2>
@@ -702,7 +951,7 @@ export function LetterDetail() {
     }
     return (
       <main className="w-full px-8 xl:px-12 py-8">
-        <button onClick={handleBack} className="text-sm text-muted-foreground hover:text-foreground transition-colors mb-6">← Feedback Letters</button>
+        <button onClick={handleBack} className="text-sm text-muted-foreground hover:text-foreground transition-colors mb-6">← All Feedback</button>
         <p className="text-sm text-muted-foreground">Letter not found.</p>
       </main>
     )
@@ -710,6 +959,16 @@ export function LetterDetail() {
 
   const isPending = data.status === 'in_transit'
   const hasAiFeedback = data.hasAiFeedback !== false
+  const sourceType = data.sourceType ?? (data.from.includes('AI') ? 'ai' : 'teacher')
+  const avatarLabel = data.avatarLabel ?? (sourceType === 'ai' ? '✦' : data.from.charAt(0))
+  const avatarColor = data.avatarColor ?? (sourceType === 'ai' ? '#7C3AED' : '#64748B')
+  const schoolOrRole = data.schoolOrRole ?? (sourceType === 'ai' ? 'Singapore Teaching Practice' : '')
+  const wasSentByMe = sentFeedbackIds.includes(data.id) || data.relationship === 'sent'
+  const isFeedbackRequest = data.relationship === 'toRespond' && !sentFeedbackIds.includes(data.id)
+  const feedbackOwner = data.requestedFor ?? data.from
+  const humanDraft = humanFeedbackDrafts[data.id] ?? { wentWell: '', improve: '' }
+  const sourceLabel = isFeedbackRequest ? 'Feedback request from' : wasSentByMe ? 'Feedback sent to' : 'Feedback from'
+  const canRequestAiFeedback = wasSentByMe && sourceType === 'teacher' && (!data.letter || !hasAiFeedback)
 
   return (
     <>
@@ -720,7 +979,7 @@ export function LetterDetail() {
         {/* Top nav */}
         <div className="flex items-center justify-between mb-8 mx-auto max-w-5xl">
           <button onClick={handleBack} className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5">
-            ← Feedback Letters
+            ← All Feedback
           </button>
           {!isPending && (
             <button
@@ -737,12 +996,24 @@ export function LetterDetail() {
 
           {/* ── Left: lesson info ── */}
           <div className="space-y-5">
-            <div>
-              <h2 className="text-lg font-semibold text-foreground leading-snug mb-1">{data.lesson}</h2>
-              <p className="text-[12px] text-muted-foreground">
-                📅 {data.date}
-                {!isPending && ` · from ${data.from}`}
-              </p>
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <div
+                  className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-base font-bold text-white shadow-sm"
+                  style={{ backgroundColor: avatarColor }}
+                >
+                  {avatarLabel}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold uppercase text-muted-foreground [letter-spacing:0.14em]">{sourceLabel}</p>
+                  <p className="truncate text-sm font-semibold text-foreground">{sourceType === 'ai' ? 'STP Feedback AI' : data.from}</p>
+                  {schoolOrRole && <p className="truncate text-xs text-muted-foreground">{schoolOrRole}</p>}
+                </div>
+              </div>
+              <div>
+                <h2 className="text-2xl font-semibold text-foreground leading-tight mb-1">{data.lesson}</h2>
+                <p className="text-[12px] text-muted-foreground">📅 {data.date}</p>
+              </div>
             </div>
 
             <RecordingPlayer recording={data.recording} />
@@ -755,7 +1026,7 @@ export function LetterDetail() {
 
             {/* Your ask */}
             <div className="space-y-1">
-              <p className="text-[10px] font-semibold uppercase tracking-[2px] text-muted-foreground">Your ask</p>
+              <p className="text-[10px] font-semibold uppercase tracking-[2px] text-muted-foreground">Feedback needed</p>
               <p className="font-serif italic text-sm text-foreground/80 leading-relaxed">{data.ask}</p>
             </div>
           </div>
@@ -765,40 +1036,53 @@ export function LetterDetail() {
             {isPending ? (
               <PendingReplyState from={data.from} />
             ) : (
-              <Tabs defaultValue={hasAiFeedback ? 'feedback' : 'notes'}>
+              <Tabs defaultValue="feedback">
                 <TabsList className="w-full bg-black/[0.07] mb-6">
-                  {hasAiFeedback ? (
-                    <>
-                      <TabsTrigger value="feedback" className="flex-1 text-xs">AI Feedback</TabsTrigger>
-                      <TabsTrigger value="notes"    className="flex-1 text-xs">Notes</TabsTrigger>
-                    </>
-                  ) : (
-                    <>
-                      <TabsTrigger value="notes"    className="flex-1 text-xs">Notes</TabsTrigger>
-                      <TabsTrigger value="feedback" className="flex-1 text-xs">AI Feedback</TabsTrigger>
-                    </>
-                  )}
+                  <TabsTrigger value="feedback" className="flex-1 text-xs">Feedback</TabsTrigger>
+                  <TabsTrigger value="annotations" className="flex-1 text-xs">Annotations</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="feedback" className="space-y-4">
-                  {!data.letter || !hasAiFeedback ? (
+                  {isFeedbackRequest ? (
+                    <HumanFeedbackForm
+                      userName={feedbackOwner}
+                      draft={humanDraft}
+                      onChange={(patch) => updateHumanFeedbackDraft(data.id, patch)}
+                      onSend={() => handleSendHumanFeedback(feedbackOwner)}
+                    />
+                  ) : !data.letter || !hasAiFeedback ? (
                     <div className="flex flex-col items-center gap-4 py-16 text-center">
-                      <div className="w-12 h-12 rounded-full bg-violet-100 flex items-center justify-center">
-                        <Sparkles className="w-5 h-5 text-violet-500" />
-                      </div>
-                      <div className="space-y-1.5">
-                        <p className="font-semibold text-foreground">No AI feedback yet</p>
-                        <p className="text-sm text-muted-foreground max-w-xs">
-                          This letter was shared for peer feedback. Send it to STP Feedback AI to get
-                          structured feedback using the STP Framework too.
-                        </p>
-                      </div>
-                      <button
-                        onClick={() => setFlow('write')}
-                        className="px-5 py-2.5 rounded-lg bg-violet-600 text-white text-sm font-semibold hover:bg-violet-700 transition-colors"
-                      >
-                        Get feedback from STP Feedback AI →
-                      </button>
+                      {canRequestAiFeedback ? (
+                        <>
+                          <div className="w-12 h-12 rounded-full bg-violet-100 flex items-center justify-center">
+                            <Sparkles className="w-5 h-5 text-violet-500" />
+                          </div>
+                          <div className="space-y-1.5">
+                            <p className="font-semibold text-foreground">No AI feedback yet</p>
+                            <p className="text-sm text-muted-foreground max-w-xs">
+                              Send this feedback to STP Feedback AI to get structured feedback using the STP Framework too.
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => setFlow('write')}
+                            className="px-5 py-2.5 rounded-lg bg-violet-600 text-white text-sm font-semibold hover:bg-violet-700 transition-colors"
+                          >
+                            Get feedback from STP Feedback AI →
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+                            <Sparkles className="w-5 h-5 text-muted-foreground" />
+                          </div>
+                          <div className="space-y-1.5">
+                            <p className="font-semibold text-foreground">Feedback not ready yet</p>
+                            <p className="text-sm text-muted-foreground max-w-xs">
+                              This letter is waiting for feedback.
+                            </p>
+                          </div>
+                        </>
+                      )}
                     </div>
                   ) : (<>
                   {/* Greeting — prominent */}
@@ -844,7 +1128,7 @@ export function LetterDetail() {
                   </>)}
                 </TabsContent>
 
-                <TabsContent value="notes">
+                <TabsContent value="annotations">
                   <NotesTab
                     annotations={annotations}
                     annTimeStart={annTimeStart} annTimeEnd={annTimeEnd} annNote={annNote}
