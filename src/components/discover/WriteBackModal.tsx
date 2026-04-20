@@ -10,11 +10,18 @@ interface WriteBackModalProps {
 }
 
 export function WriteBackModal({ isOpen, to, onClose }: WriteBackModalProps) {
+  const [wellDone, setWellDone] = useState('')
+  const [tryNext, setTryNext] = useState('')
   const [sent, setSent] = useState(false)
 
   function handleSend() {
     setSent(true)
-    setTimeout(() => { setSent(false); onClose() }, 1200)
+    setTimeout(() => {
+      setSent(false)
+      setWellDone('')
+      setTryNext('')
+      onClose()
+    }, 1200)
   }
 
   if (!isOpen) return null
@@ -39,11 +46,33 @@ export function WriteBackModal({ isOpen, to, onClose }: WriteBackModalProps) {
           </button>
         </CardHeader>
         <CardContent className="space-y-3">
-          <Textarea
-            className="font-serif italic text-sm min-h-[110px] bg-muted/30 border-border resize-none"
-            placeholder="I noticed something similar. Here's what I saw from the outside…"
-          />
-          <Button className="w-full" size="lg" onClick={handleSend} disabled={sent}>
+          <div className="rounded-xl border border-green-200 bg-green-50/60 overflow-hidden">
+            <div className="px-4 py-2.5 border-b border-green-200/60 flex items-center gap-2">
+              <span className="w-4 h-4 rounded-full bg-green-500 flex items-center justify-center text-white text-[9px] font-bold shrink-0">✓</span>
+              <p className="text-sm font-semibold text-green-800">What went well</p>
+            </div>
+            <Textarea
+              className="border-0 rounded-none bg-transparent font-serif italic text-sm min-h-[80px] resize-none focus-visible:ring-0 focus-visible:ring-offset-0 px-4 py-3"
+              placeholder="What you noticed going well..."
+              value={wellDone}
+              onChange={(e) => setWellDone(e.target.value)}
+            />
+          </div>
+
+          <div className="rounded-xl border border-amber-200 bg-amber-50/60 overflow-hidden">
+            <div className="px-4 py-2.5 border-b border-amber-200/60 flex items-center gap-2">
+              <span className="text-amber-600 text-base leading-none">→</span>
+              <p className="text-sm font-semibold text-amber-800">Try this next time</p>
+            </div>
+            <Textarea
+              className="border-0 rounded-none bg-transparent font-serif italic text-sm min-h-[80px] resize-none focus-visible:ring-0 focus-visible:ring-offset-0 px-4 py-3"
+              placeholder="One thing to try next time..."
+              value={tryNext}
+              onChange={(e) => setTryNext(e.target.value)}
+            />
+          </div>
+
+          <Button className="w-full" size="lg" onClick={handleSend} disabled={sent || (!wellDone.trim() && !tryNext.trim())}>
             {sent ? 'Sent ✓' : 'Send your response →'}
           </Button>
         </CardContent>

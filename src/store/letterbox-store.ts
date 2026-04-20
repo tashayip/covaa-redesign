@@ -51,7 +51,7 @@ const DISCOVER_CARDS: DiscoverCard[] = [
 
 interface LetterboxStore {
   flow: FlowState
-  wizardStep: 1 | 2 | 3 | 4
+  wizardStep: 1 | 2 | 3 | 4 | 5
   draft: LetterDraft
   contacts: Contact[]
   selectedIds: string[]
@@ -67,7 +67,7 @@ interface LetterboxStore {
   sentFeedbackIds: number[]
 
   setFlow: (f: FlowState) => void
-  setWizardStep: (s: 1 | 2 | 3 | 4) => void
+  setWizardStep: (s: 1 | 2 | 3 | 4 | 5) => void
   updateDraft: (patch: Partial<LetterDraft>) => void
   toggleContact: (id: string) => void
   addCustomContact: (email: string) => void

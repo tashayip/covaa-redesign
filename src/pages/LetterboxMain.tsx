@@ -95,7 +95,7 @@ function ContactSelector({ showError }: { showError?: boolean }) {
         onClick={() => setOpen((v) => !v)}
         className={cn(
           'w-full flex flex-wrap items-center gap-1.5 px-3 py-2.5 min-h-[42px] rounded-xl border text-left transition-colors',
-          open ? 'border-foreground/40 bg-background' : 'border-border bg-background hover:border-foreground/25',
+          open ? 'border-foreground/40 bg-white' : 'border-border bg-white hover:border-foreground/25',
           showError && selectedIds.length === 0 && 'border-red-400'
         )}
       >
@@ -194,7 +194,7 @@ function ContactSelector({ showError }: { showError?: boolean }) {
 const PROCESS_STEPS = [
   { icon: '🎬', label: 'Record', desc: 'Film your lesson — phone on a tripod works fine' },
   { icon: '✉️', label: 'Share with STP Feedback AI or other colleagues',  desc: 'Upload a link or file and write a letter about what you want feedback on' },
-  { icon: '💌', label: 'Receive feedback from peers or STP Feedback AI', desc: 'Get a thoughtful letter back from your mentor, peers, or STP Feedback AI' },
+  { icon: '💌', label: 'Receive feedback from colleagues or STP Feedback AI', desc: 'Get a thoughtful letter back from another teacher or STP Feedback AI' },
 ]
 
 function Step1({ onNext }: { onNext: () => void }) {
@@ -202,7 +202,7 @@ function Step1({ onNext }: { onNext: () => void }) {
     <div className="animate-fade-up space-y-5">
         <div className="space-y-3">
           {PROCESS_STEPS.map((s, i) => (
-            <div key={s.label} className="flex items-start gap-4 p-4 rounded-xl bg-background border border-border">
+            <div key={s.label} className="flex items-start gap-4 p-4 rounded-xl bg-white border border-border">
               <div className="w-9 h-9 shrink-0 rounded-full bg-muted flex items-center justify-center text-lg">
                 {s.icon}
               </div>
@@ -226,7 +226,63 @@ function Step1({ onNext }: { onNext: () => void }) {
   )
 }
 
-function Step2({ onNext, onBack }: { onNext: () => void; onBack: () => void }) {
+function Step2SendTo({ onNext, onBack }: { onNext: () => void; onBack: () => void }) {
+  const { selectedIds } = useLetterboxStore(useShallow((s) => ({ selectedIds: s.selectedIds })))
+  const [showError, setShowError] = useState(false)
+  const [calloutVisible, setCalloutVisible] = useState(true)
+
+  useEffect(() => {
+    const t = setTimeout(() => setCalloutVisible(false), 4500)
+    return () => clearTimeout(t)
+  }, [])
+
+  function handleNext() {
+    if (selectedIds.length === 0) { setShowError(true); return }
+    onNext()
+  }
+
+  return (
+    <div className="animate-fade-up space-y-5">
+      <div>
+        <FormLabel>Send to</FormLabel>
+        <ContactSelector showError={showError} />
+        <p className="text-[11px] text-muted-foreground mt-1.5">For richer feedback, add another colleague alongside STP Feedback AI.</p>
+
+        <AnimatePresence>
+          {calloutVisible && (
+            <motion.div
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.25 }}
+              className="mt-3 flex items-start gap-2.5 px-3.5 py-3 rounded-xl bg-violet-50 border border-violet-200"
+            >
+              <span className="text-violet-600 text-base shrink-0 mt-0.5">✦</span>
+              <p className="text-xs text-violet-800 leading-relaxed">
+                <span className="font-semibold">STP Feedback AI</span> is pre-selected so you can get feedback based on the STP Feedback Framework.
+              </p>
+              <button
+                type="button"
+                onClick={() => setCalloutVisible(false)}
+                className="shrink-0 text-violet-400 hover:text-violet-600 text-base leading-none mt-0.5"
+                aria-label="Dismiss"
+              >
+                ×
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      <div className="flex justify-between pt-2">
+        <Button variant="outline" size="default" onClick={onBack}>← Back</Button>
+        <Button size="default" onClick={handleNext}>Continue →</Button>
+      </div>
+    </div>
+  )
+}
+
+function Step4Stamps({ onNext, onBack }: { onNext: () => void; onBack: () => void }) {
   const { draft, updateDraft, defaultStampIds } = useLetterboxStore(
     useShallow((s) => ({ draft: s.draft, updateDraft: s.updateDraft, defaultStampIds: s.defaultStampIds }))
   )
@@ -244,24 +300,39 @@ function Step2({ onNext, onBack }: { onNext: () => void; onBack: () => void }) {
     const next = current.includes(id)
       ? current.filter((x) => x !== id)
       : [...current, id]
-    if (next.length === 0) return // must keep at least one
+    if (next.length === 0) return
     updateDraft({ stampIds: next, stampId: next[0] })
   }
 
   const canProceed = draft.stampIds.length > 0
+  const mainStamps = STAMP_ORDER.filter((id) => id !== 'other')
+  const otherStamp = STAMP_ORDER.find((id) => id === 'other')
 
   return (
     <div className="animate-fade-up space-y-3">
-      {STAMP_ORDER.map((id) => (
-        <DomainRow
-          key={id}
-          id={id}
-          selected={draft.stampIds.includes(id)}
-          onToggle={() => toggleDomain(id)}
-          customLabel={draft.customStampLabel}
-          onCustomLabel={(label) => updateDraft({ customStampLabel: label })}
-        />
-      ))}
+      <div className="grid grid-cols-2 gap-3">
+        {mainStamps.map((id) => (
+          <DomainRow
+            key={id}
+            id={id}
+            selected={draft.stampIds.includes(id)}
+            onToggle={() => toggleDomain(id)}
+            customLabel={draft.customStampLabel}
+            onCustomLabel={(label) => updateDraft({ customStampLabel: label })}
+          />
+        ))}
+        {otherStamp && (
+          <div className="col-span-2">
+            <DomainRow
+              id={otherStamp}
+              selected={draft.stampIds.includes(otherStamp)}
+              onToggle={() => toggleDomain(otherStamp)}
+              customLabel={draft.customStampLabel}
+              onCustomLabel={(label) => updateDraft({ customStampLabel: label })}
+            />
+          </div>
+        )}
+      </div>
 
       <div className="flex justify-between pt-4">
         <Button variant="outline" size="default" onClick={onBack}>
@@ -329,6 +400,7 @@ function Step3({ onNext, onBack }: { onNext: () => void; onBack: () => void }) {
             placeholder="e.g. P4 English - Creative Writing"
             value={draft.lesson}
             onChange={(v) => updateDraft({ lesson: v })}
+            className="bg-white"
           />
         </div>
 
@@ -342,6 +414,7 @@ function Step3({ onNext, onBack }: { onNext: () => void; onBack: () => void }) {
             value={urlValue}
             onChange={(v) => updateDraft({ youtubeLink: v || null, attachmentName: null })}
             hasError={urlIsInvalid}
+            className="bg-white"
           />
           {urlIsInvalid ? (
             <p className="text-[11px] text-red-500 mt-1.5">Please enter a valid YouTube or Vimeo link.</p>
@@ -420,37 +493,22 @@ function Step3({ onNext, onBack }: { onNext: () => void; onBack: () => void }) {
   )
 }
 
-function Step4({ onBack, onSend, sending }: { onBack: () => void; onSend: () => void; sending: boolean }) {
-  const { draft, updateDraft, selectedIds } = useLetterboxStore(
-    useShallow((s) => ({ draft: s.draft, updateDraft: s.updateDraft, selectedIds: s.selectedIds }))
+function Step5({ onBack, onSend, sending }: { onBack: () => void; onSend: () => void; sending: boolean }) {
+  const { draft, updateDraft } = useLetterboxStore(
+    useShallow((s) => ({ draft: s.draft, updateDraft: s.updateDraft }))
   )
-  const [triedSend, setTriedSend] = useState(false)
   const [showHint, setShowHint] = useState(false)
-
-  function handleSendClick() {
-    if (selectedIds.length === 0) { setTriedSend(true); return }
-    onSend()
-  }
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-[1fr_440px] gap-14 items-start animate-fade-up">
       {/* Left: form */}
       <div className="space-y-5">
 
-        {/* Send to */}
-        <div>
-          <FormLabel>Send to</FormLabel>
-          <ContactSelector showError={triedSend} />
-          <p className="text-[11px] text-muted-foreground mt-1.5">For richer feedback, add a colleague or mentor alongside STP Feedback AI.</p>
-        </div>
-
-        <Separator />
-
         {/* Context */}
         <div>
           <FormLabel>Lesson context <span className="font-normal normal-case tracking-normal text-[10px]">— optional</span></FormLabel>
           <Textarea
-            className="font-serif italic text-[13.5px] leading-[1.75] min-h-[90px] resize-none"
+            className="font-serif italic text-[13.5px] leading-[1.75] min-h-[90px] resize-none bg-white"
             placeholder={`e.g. P4 English, 32 pupils — descriptive writing. I tried a cold-call on a quiet student at 18 min and wasn't sure it landed.`}
             value={draft.body}
             onChange={(e) => updateDraft({ body: e.target.value })}
@@ -461,7 +519,7 @@ function Step4({ onBack, onSend, sending }: { onBack: () => void; onSend: () => 
         <div>
           <FormLabel required>What feedback do you need from others?</FormLabel>
           <Textarea
-            className="min-h-[120px] resize-none font-serif italic text-[13.5px] leading-[1.75]"
+            className="min-h-[120px] resize-none font-serif italic text-[13.5px] leading-[1.75] bg-white"
             placeholder={`e.g. Was my pacing right after the group task? Did students have time to think before I moved on?`}
             value={draft.ask}
             onChange={(e) => updateDraft({ ask: e.target.value })}
@@ -502,6 +560,7 @@ function Step4({ onBack, onSend, sending }: { onBack: () => void; onSend: () => 
             placeholder="Your name"
             value={draft.signAs}
             onChange={(v) => updateDraft({ signAs: v })}
+            className="bg-white"
           />
         </div>
 
@@ -525,7 +584,7 @@ function Step4({ onBack, onSend, sending }: { onBack: () => void; onSend: () => 
 
         <div className="flex justify-between pt-2">
           <Button variant="outline" size="default" onClick={onBack}>← Back</Button>
-          <Button size="default" onClick={handleSendClick} disabled={sending}>
+          <Button size="default" onClick={onSend} disabled={sending}>
             {sending ? 'Sending…' : 'Send letter →'}
           </Button>
         </div>
@@ -554,7 +613,7 @@ export function LetterboxMain() {
   )
   const [sending, setSending] = useState(false)
 
-  function goToStep(s: 1 | 2 | 3 | 4) {
+  function goToStep(s: 1 | 2 | 3 | 4 | 5) {
     setWizardStep(s)
   }
 
@@ -585,23 +644,27 @@ export function LetterboxMain() {
     flow === 'transit'  ? 'All Feedback' :
     flow === 'discover' ? 'From the community' :
     wizardStep === 1 ? 'How does this work?' :
-    wizardStep === 2 ? 'What would you like feedback on?' :
+    wizardStep === 2 ? 'Who would you like feedback from?' :
     wizardStep === 3 ? 'Describe your lesson' :
+    wizardStep === 4 ? 'What would you like feedback on?' :
                        'Give more context on what feedback you need'
 
   const pageSubtitle =
     flow === 'transit'  ? 'Letters you have received and letters you have sent to others or STP Feedback AI.' :
     flow === 'discover' ? "Letters from teachers who'd welcome a second pair of eyes." :
     wizardStep === 1 ? 'Describe your lesson, tell us what you want to know, and send it. Replies come back as letters — like the ones in Community.' :
-    wizardStep === 2 ? 'Choose one or more areas of teaching you want feedback on. You can select multiple.' :
+    wizardStep === 2 ? 'Choose who should receive your lesson and write back with feedback.' :
     wizardStep === 3 ? 'Add your recording and give the lesson a title.' :
-                       'Tell us who to send it to and exactly what you want to know.'
+    wizardStep === 4 ? 'Choose one or more areas of teaching you want feedback on. You can select multiple.' :
+                       'Tell us exactly what you want to know.'
+
+  const isWideStep = flow === 'write' && (wizardStep === 3 || wizardStep === 5)
 
   return (
     <main className="w-full px-8 xl:px-12 py-8">
 
       {/* Page header — centred container */}
-      <div className={`mb-6 ${flow === 'discover' ? '' : (flow === 'write' && wizardStep > 2) ? 'mx-auto max-w-5xl' : 'mx-auto max-w-2xl'}`}>
+      <div className={`mb-6 ${flow === 'discover' ? '' : isWideStep ? 'mx-auto max-w-5xl' : 'mx-auto max-w-2xl'}`}>
         <h1 className="text-[2rem] font-semibold leading-none text-foreground mb-2">
           {pageTitle}
         </h1>
@@ -620,7 +683,7 @@ export function LetterboxMain() {
           )}
           {wizardStep === 2 && (
             <div className="mx-auto max-w-2xl">
-              <Step2 onNext={() => goToStep(3)} onBack={() => goToStep(1)} />
+              <Step2SendTo onNext={() => goToStep(3)} onBack={() => goToStep(1)} />
             </div>
           )}
           {wizardStep === 3 && (
@@ -629,8 +692,13 @@ export function LetterboxMain() {
             </div>
           )}
           {wizardStep === 4 && (
+            <div className="mx-auto max-w-2xl">
+              <Step4Stamps onNext={() => goToStep(5)} onBack={() => goToStep(3)} />
+            </div>
+          )}
+          {wizardStep === 5 && (
             <div className="mx-auto max-w-5xl">
-              <Step4 onBack={() => goToStep(3)} onSend={handleSend} sending={sending} />
+              <Step5 onBack={() => goToStep(4)} onSend={handleSend} sending={sending} />
             </div>
           )}
         </>

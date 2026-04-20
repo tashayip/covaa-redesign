@@ -127,6 +127,7 @@ interface MockLetterData {
   avatarColor?: string
   relationship?: 'shared' | 'toRespond' | 'sent'
   requestedFor?: string
+  isOpenLetter?: boolean
   hasAiFeedback?: boolean
   letter?: {
     greeting: string
@@ -221,7 +222,7 @@ const MOCK_LETTERS: Record<number, MockLetterData> = {
         "You said the pre-writing discussion was unplanned. What made you decide to go with it in that moment? That instinct is worth examining — it might tell you something about how you read the room.",
       ],
       teachingActions: [
-        'Building on each other\'s ideas — the pre-writing discussion sparked genuine peer knowledge-sharing',
+        'Building on each other\'s ideas — the pre-writing discussion sparked genuine collaborative knowledge-sharing',
         'Scaffolding with a good example — mentor text gave students two entry points into the same material',
         'Questioning to deepen thinking — wait time is the main area to develop',
         'Keeping the lesson moving — transition at 28 min identified for improvement',
@@ -253,7 +254,7 @@ const MOCK_LETTERS: Record<number, MockLetterData> = {
       ],
       tryNext: [
         'After students describe what happened, ask one more causal question: "what makes you think the force changed?" This nudges them from reporting movement to explaining it.',
-        'For audio-only reflections, add two or three quick timestamps before uploading. That would make it easier for a peer or AI reviewer to jump straight to the moments you care about.',
+        'For audio-only reflections, add two or three quick timestamps before uploading. That would make it easier for a colleague or AI reviewer to jump straight to the moments you care about.',
       ],
       reflect: [
         'Which student responses showed a secure link between force and direction, and which responses only described motion?',
@@ -881,6 +882,7 @@ export function LetterDetail() {
   )
 
   const [stpOpen, setStpOpen] = useState(false)
+  const [copyDone, setCopyDone] = useState(false)
   const [annotations, setAnnotations] = useState<Annotation[]>([])
   const [annTimeStart, setAnnTimeStart] = useState('')
   const [annTimeEnd, setAnnTimeEnd] = useState('')
@@ -891,6 +893,12 @@ export function LetterDetail() {
   function handleBack() {
     setSelectedLetter(null)
     setFlow('transit')
+  }
+
+  function handleCopy() {
+    navigator.clipboard.writeText(window.location.href).catch(() => {})
+    setCopyDone(true)
+    setTimeout(() => setCopyDone(false), 2000)
   }
 
   function addAnnotation() {
@@ -982,12 +990,21 @@ export function LetterDetail() {
             ← All Feedback
           </button>
           {!isPending && (
-            <button
-              onClick={() => setStpOpen(true)}
-              className="flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground hover:text-foreground border border-border rounded-lg px-3 py-1.5 transition-colors hover:bg-muted"
-            >
-              STP Framework ≡
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleCopy}
+                className="flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground hover:text-foreground border border-border rounded-lg px-3 py-1.5 transition-colors hover:bg-muted"
+              >
+                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                {copyDone ? 'Link copied!' : data.isOpenLetter ? 'Share to edit' : 'Share letter'}
+              </button>
+              <button
+                onClick={() => setStpOpen(true)}
+                className="flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground hover:text-foreground border border-border rounded-lg px-3 py-1.5 transition-colors hover:bg-muted"
+              >
+                STP Framework ≡
+              </button>
+            </div>
           )}
         </div>
 
@@ -1086,7 +1103,7 @@ export function LetterDetail() {
                     </div>
                   ) : (<>
                   {/* Greeting — prominent */}
-                  <div className="mb-2">
+                  <div className="mb-6 pb-5 border-b border-border/40">
                     <p className="font-serif text-2xl text-foreground leading-tight">{data.letter.greeting}</p>
                   </div>
 

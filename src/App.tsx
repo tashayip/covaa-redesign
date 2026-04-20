@@ -56,7 +56,7 @@ function StickyHeader() {
         <div className="h-1 bg-muted overflow-hidden">
           <div
             className="h-full bg-emerald-600 transition-all duration-500 ease-in-out"
-            style={{ width: `${(wizardStep / 4) * 100}%` }}
+            style={{ width: `${(wizardStep / 5) * 100}%` }}
           />
         </div>
       )}
