@@ -143,7 +143,7 @@ const MOCK_LETTERS: Record<number, MockLetterData> = {
     context: 'Year 5 Maths, 35 pupils. Objective: introduce equivalent fractions using area models. I tried a new visual approach at the 12-minute mark and wasn\'t sure it landed.',
     ask: 'Was my pacing right after the group work segment? Did students seem to understand before I moved on?',
     status: 'in_transit',
-    from: 'Orchid AI',
+    from: 'STP Feedback AI',
   },
   2: {
     id: 2,
@@ -195,7 +195,7 @@ const MOCK_LETTERS: Record<number, MockLetterData> = {
     context: "P4 English, 34 pupils. Objective: use sensory details in descriptive writing. The pre-writing discussion at 8 min was unplanned — I went with the energy in the room.",
     ask: 'Was the wait time after questions long enough? Did I ask enough higher-order questions? The transition at 28 min felt rushed — would love a second view.',
     status: 'replied',
-    from: 'Orchid AI',
+    from: 'STP Feedback AI',
     letter: {
       greeting: 'Dear Tasha,',
       wellDone: [
@@ -219,7 +219,7 @@ const MOCK_LETTERS: Record<number, MockLetterData> = {
         'Reading the room — the unplanned discussion revealed strong situational instinct',
       ],
       closing: 'A thoughtful lesson with a strong arc. The unplanned moments were often the most alive. Trust them more.',
-      signature: '— Orchid AI, using the STP Framework',
+      signature: '— STP Feedback AI, using the STP Framework',
     },
   },
   4: {
@@ -232,9 +232,9 @@ const MOCK_LETTERS: Record<number, MockLetterData> = {
       src: DEMO_AUDIO_SRC,
     },
     context: 'P5 Science, 38 pupils. Objective: explain how pushes and pulls affect movement. I uploaded an audio reflection because the lesson recording was unavailable, and I narrated the moments where group talk became difficult to hear.',
-    ask: 'Could Orchid AI analyse whether my questioning helped students connect force, direction, and movement? I also want to know if my recap was clear enough for the groups that were quieter.',
+    ask: 'Could STP Feedback AI analyse whether my questioning helped students connect force, direction, and movement? I also want to know if my recap was clear enough for the groups that were quieter.',
     status: 'replied',
-    from: 'Orchid AI',
+    from: 'STP Feedback AI',
     letter: {
       greeting: 'Dear Tasha,',
       wellDone: [
@@ -256,7 +256,58 @@ const MOCK_LETTERS: Record<number, MockLetterData> = {
         'Facilitating collaborative learning — the quieter groups needed a light-touch structure for reporting back',
       ],
       closing: 'This audio note worked as a useful reflection artifact. The next step is to pair the same clarity of narration with sharper timestamps so feedback can be even more precise.',
-      signature: '— Orchid AI, using the STP Framework',
+      signature: '— STP Feedback AI, using the STP Framework',
+    },
+  },
+  300: {
+    id: 300,
+    lesson: 'P4 English - Creative Writing',
+    date: 'Just now',
+    recording: {
+      type: 'video',
+      title: 'Creative writing lesson recording',
+      youtubeId: 'xKxrkht7CpY',
+    },
+    context: 'P4 English, 34 pupils. Objective: plan a short creative story with a stronger setting and clearer character motivation. I tried modelling one paragraph, then asked students to continue in pairs.',
+    ask: 'Could STP Feedback AI look at whether my modelling gave enough structure without taking away student choice? I also want feedback on whether the pair discussion helped students improve their story ideas.',
+    status: 'in_transit',
+    from: 'STP Feedback AI',
+  },
+  301: {
+    id: 301,
+    lesson: 'P4 English - Creative Writing',
+    date: 'Just now',
+    recording: {
+      type: 'video',
+      title: 'Creative writing lesson recording',
+      youtubeId: 'xKxrkht7CpY',
+    },
+    context: 'P4 English, 34 pupils. Objective: plan a short creative story with a stronger setting and clearer character motivation. I tried modelling one paragraph, then asked students to continue in pairs.',
+    ask: 'Could STP Feedback AI look at whether my modelling gave enough structure without taking away student choice? I also want feedback on whether the pair discussion helped students improve their story ideas.',
+    status: 'replied',
+    from: 'STP Feedback AI',
+    letter: {
+      greeting: 'Dear Tasha,',
+      wellDone: [
+        'Your modelling made the writing choices visible. Naming why you chose a setting detail, instead of only showing the final sentence, helped pupils see the thinking behind the craft.',
+        'The pair discussion gave students a low-pressure rehearsal space before writing. Several pupils moved from single-word ideas to fuller character intentions after talking it through.',
+        'You kept the feedback focused on one improvement target: make the character want something. That clarity made the writing task feel achievable.',
+      ],
+      tryNext: [
+        'Before releasing pupils to write, ask two students to explain the success criteria in their own words. This would quickly show whether the model has transferred from teacher demonstration to student understanding.',
+        'During pair talk, pause one promising conversation and briefly spotlight the move they made: "they changed scared to worried because..." That helps the class hear what improvement sounds like.',
+      ],
+      reflect: [
+        'Which pupils improved because they understood the model, and which pupils copied the model because they needed more scaffolding?',
+        'Where could you add one quick check for understanding before independent writing begins?',
+      ],
+      teachingActions: [
+        'Providing clear explanation — the model paragraph made the invisible writing decisions explicit',
+        'Facilitating collaborative learning — pair rehearsal helped students develop ideas before committing to writing',
+        'Checking understanding and providing feedback — a short success-criteria check would strengthen the handover into independent work',
+      ],
+      closing: 'This was a warm, purposeful creative writing lesson. The next step is to make the bridge from your model to student independence even more visible.',
+      signature: '— STP Feedback AI, using the STP Framework',
     },
   },
   101: {
@@ -637,7 +688,7 @@ export function LetterDetail() {
       return (
         <main className="w-full px-8 xl:px-12 py-8">
           <div className="mx-auto max-w-5xl">
-            <button onClick={handleBack} className="text-sm text-muted-foreground hover:text-foreground transition-colors mb-8 flex items-center gap-1.5">← My letters</button>
+            <button onClick={handleBack} className="text-sm text-muted-foreground hover:text-foreground transition-colors mb-8 flex items-center gap-1.5">← Feedback Letters</button>
             <div className="grid grid-cols-1 xl:grid-cols-[360px_1fr] gap-10 items-start">
               <div className="space-y-2">
                 <h2 className="text-lg font-semibold text-foreground leading-snug">{draft.lesson}</h2>
@@ -651,7 +702,7 @@ export function LetterDetail() {
     }
     return (
       <main className="w-full px-8 xl:px-12 py-8">
-        <button onClick={handleBack} className="text-sm text-muted-foreground hover:text-foreground transition-colors mb-6">← My letters</button>
+        <button onClick={handleBack} className="text-sm text-muted-foreground hover:text-foreground transition-colors mb-6">← Feedback Letters</button>
         <p className="text-sm text-muted-foreground">Letter not found.</p>
       </main>
     )
@@ -669,7 +720,7 @@ export function LetterDetail() {
         {/* Top nav */}
         <div className="flex items-center justify-between mb-8 mx-auto max-w-5xl">
           <button onClick={handleBack} className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5">
-            ← My letters
+            ← Feedback Letters
           </button>
           {!isPending && (
             <button
@@ -738,7 +789,7 @@ export function LetterDetail() {
                       <div className="space-y-1.5">
                         <p className="font-semibold text-foreground">No AI feedback yet</p>
                         <p className="text-sm text-muted-foreground max-w-xs">
-                          This letter was shared for peer feedback. Send it to Orchid AI to get
+                          This letter was shared for peer feedback. Send it to STP Feedback AI to get
                           structured feedback using the STP Framework too.
                         </p>
                       </div>
@@ -746,7 +797,7 @@ export function LetterDetail() {
                         onClick={() => setFlow('write')}
                         className="px-5 py-2.5 rounded-lg bg-violet-600 text-white text-sm font-semibold hover:bg-violet-700 transition-colors"
                       >
-                        Get feedback from Orchid AI →
+                        Get feedback from STP Feedback AI →
                       </button>
                     </div>
                   ) : (<>

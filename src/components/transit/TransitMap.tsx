@@ -1,30 +1,19 @@
-import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useLetterboxStore } from '@/store/letterbox-store'
 import { useShallow } from 'zustand/react/shallow'
 import { StampSVGSmall } from '@/components/stamps/StampSVG'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { cn } from '@/lib/utils'
-import type { StampId } from '@/types'
+import type { FeedbackLetter } from '@/types'
 
 // ─── mock data ───────────────────────────────────────────────────────────────
 
-interface SentLetter {
-  id: number
-  lesson: string
-  stamp: StampId
-  recipients: string[]
-  sentAt: string
-  status: 'in_transit' | 'replied' | 'sent'
-  isNew: boolean
-}
-
-const MOCK_LETTERS: SentLetter[] = [
+const MOCK_LETTERS: FeedbackLetter[] = [
   {
     id: 1,
     lesson: 'Year 5 Maths – Fractions',
     stamp: 'preparation',
-    recipients: ['Orchid AI', 'Marcus'],
+    recipients: ['STP Feedback AI', 'Marcus'],
     sentAt: '2 hours ago',
     status: 'in_transit',
     isNew: false,
@@ -36,13 +25,13 @@ const MOCK_LETTERS: SentLetter[] = [
     recipients: ['Sarah'],
     sentAt: '3 days ago',
     status: 'replied',
-    isNew: true,
+    isNew: false,
   },
   {
     id: 3,
     lesson: 'P4 English – Descriptive Writing',
     stamp: 'enactment',
-    recipients: ['Orchid AI', 'Marcus', 'James'],
+    recipients: ['STP Feedback AI', 'Marcus', 'James'],
     sentAt: '1 week ago',
     status: 'replied',
     isNew: false,
@@ -51,7 +40,7 @@ const MOCK_LETTERS: SentLetter[] = [
     id: 4,
     lesson: 'P5 Science – Forces Audio Reflection',
     stamp: 'assessment',
-    recipients: ['Orchid AI'],
+    recipients: ['STP Feedback AI'],
     sentAt: 'Yesterday',
     status: 'replied',
     isNew: false,
@@ -69,14 +58,12 @@ const MOCK_LETTERS: SentLetter[] = [
 
 // ─── tab config ──────────────────────────────────────────────────────────────
 
-type Tab = 'received' | 'sent'
-
 // ─── letter card ─────────────────────────────────────────────────────────────
 
 function LetterCard({
   letter, index, onViewDetail,
 }: {
-  letter: SentLetter
+  letter: FeedbackLetter
   index: number
   onViewDetail: (id: number) => void
 }) {
@@ -148,8 +135,8 @@ function LetterCard({
               letter.status === 'replied' ? 'text-blue-600' : 'text-emerald-600'
             )}>
               {letter.status === 'in_transit'
-                ? letter.recipients.includes('Orchid AI')
-                  ? 'Orchid AI is drafting a reply — coming soon'
+                ? letter.recipients.includes('STP Feedback AI')
+                  ? 'STP Feedback AI is drafting a reply — coming soon'
                   : 'Sent — reply pending'
                 : letter.status === 'replied'
                   ? letter.isNew ? 'New reply received ✦' : 'Reply received'
@@ -174,8 +161,8 @@ function LetterCard({
 
 // ─── empty state ─────────────────────────────────────────────────────────────
 
-function EmptyState({ tab }: { tab: Tab }) {
-  const messages: Record<Tab, { icon: string; text: string }> = {
+function EmptyState({ tab }: { tab: 'received' | 'sent' }) {
+  const messages: Record<'received' | 'sent', { icon: string; text: string }> = {
     received: { icon: '📭', text: "No replies yet — they'll appear here when someone writes back." },
     sent: { icon: '📤', text: 'No sent letters yet.' },
   }
@@ -197,45 +184,34 @@ function EmptyState({ tab }: { tab: Tab }) {
 // ─── main export ─────────────────────────────────────────────────────────────
 
 export function MyLetters() {
-  const { draft, contacts, selectedIds, setFlow, setSelectedLetter, decrementNewLetterCount } = useLetterboxStore(
+  const {
+    setFlow,
+    setSelectedLetter,
+    sentDemoLetter,
+    receivedDemoLetter,
+    myLettersTab,
+    setMyLettersTab,
+    markReplySeen,
+  } = useLetterboxStore(
     useShallow((s) => ({
-      draft: s.draft, contacts: s.contacts, selectedIds: s.selectedIds,
-      setFlow: s.setFlow, setSelectedLetter: s.setSelectedLetter,
-      decrementNewLetterCount: s.decrementNewLetterCount,
+      setFlow: s.setFlow,
+      setSelectedLetter: s.setSelectedLetter,
+      sentDemoLetter: s.sentDemoLetter,
+      receivedDemoLetter: s.receivedDemoLetter,
+      myLettersTab: s.myLettersTab,
+      setMyLettersTab: s.setMyLettersTab,
+      markReplySeen: s.markReplySeen,
     }))
   )
 
-  const [seenIds, setSeenIds] = useState<Set<number>>(new Set())
-  const [activeTab, setActiveTab] = useState<Tab>('received')
-
-  const justSent: SentLetter | null = draft.lesson
-    ? {
-        id: 0,
-        lesson: draft.lesson,
-        stamp: draft.stampId,
-        recipients: selectedIds
-          .map((id) => contacts.find((c) => c.id === id)?.name)
-          .filter(Boolean) as string[],
-        sentAt: 'Just now',
-        status: 'in_transit',
-        isNew: false,
-      }
-    : null
-
-  const allLetters = justSent ? [justSent, ...MOCK_LETTERS] : MOCK_LETTERS
-
-  const lettersWithSeen = allLetters.map((l) => ({
-    ...l,
-    isNew: l.isNew && !seenIds.has(l.id),
-  }))
-
-  const received = lettersWithSeen.filter((l) => l.status === 'replied')
-  const sent = lettersWithSeen.filter((l) => l.status === 'in_transit' || l.status === 'sent')
+  const demoStarted = !!sentDemoLetter || !!receivedDemoLetter
+  const staticReceived = MOCK_LETTERS.filter((l) => l.status === 'replied')
+  const staticSent = MOCK_LETTERS.filter((l) => l.status === 'in_transit' || l.status === 'sent')
+  const received = receivedDemoLetter ? [receivedDemoLetter, ...staticReceived] : staticReceived
+  const sent = demoStarted ? (sentDemoLetter ? [sentDemoLetter] : []) : staticSent
 
   function handleViewDetail(id: number) {
-    const wasNew = lettersWithSeen.find((l) => l.id === id)?.isNew
-    setSeenIds((prev) => new Set([...prev, id]))
-    if (wasNew) decrementNewLetterCount()
+    markReplySeen(id)
     setSelectedLetter(id)
     setFlow('letter-detail')
   }
@@ -243,7 +219,7 @@ export function MyLetters() {
   return (
     <div className="space-y-5">
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as Tab)}>
+      <Tabs value={myLettersTab} onValueChange={(v) => setMyLettersTab(v as 'received' | 'sent')}>
         <TabsList className="w-full bg-black/[0.07]">
           <TabsTrigger value="received" className="flex-1 text-xs">
             Received
@@ -259,7 +235,7 @@ export function MyLetters() {
           </TabsTrigger>
         </TabsList>
 
-        {(['received', 'sent'] as Tab[]).map((tabId) => {
+        {(['received', 'sent'] as const).map((tabId) => {
           const letters = tabId === 'received' ? received : sent
           return (
             <TabsContent key={tabId} value={tabId} className="mt-4">
@@ -303,7 +279,7 @@ export function MyLetters() {
           className="text-blue-600 font-medium hover:underline underline-offset-2"
           onClick={() => useLetterboxStore.getState().setFlow('discover')}
         >
-          browse Open Letters from other teachers →
+          browse Community letters from other teachers →
         </button>
       </motion.p>
     </div>

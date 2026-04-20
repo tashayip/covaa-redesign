@@ -1,12 +1,32 @@
 import { create } from 'zustand'
-import type { Contact, DiscoverCard, FlowState, LetterDraft, StampId } from '@/types'
+import type { Contact, DiscoverCard, FeedbackLetter, FeedbackLettersTab, FlowState, LetterDraft, StampId } from '@/types'
 
 const DEFAULT_CONTACTS: Contact[] = [
-  { id: 'orchid', name: 'Orchid AI', role: 'AI · STP Teaching Framework', type: 'ai',    color: '#7C3AED' },
+  { id: 'orchid', name: 'STP Feedback AI', role: 'AI · STP Teaching Framework', type: 'ai',    color: '#7C3AED' },
   { id: 'marcus', name: 'Marcus',    role: 'Your Mentor',                  type: 'mentor', color: '#2563EB' },
   { id: 'sarah',  name: 'Sarah',     role: 'Peer · P3 Teacher',            type: 'peer',   color: '#0D9488' },
   { id: 'james',  name: 'James',     role: 'HOD · Primary',                type: 'peer',   color: '#D97706' },
 ]
+
+const DEMO_SENT_LETTER: FeedbackLetter = {
+  id: 300,
+  lesson: 'P4 English - Creative Writing',
+  stamp: 'enactment',
+  recipients: ['STP Feedback AI'],
+  sentAt: 'Just now',
+  status: 'in_transit',
+  isNew: false,
+}
+
+const DEMO_RECEIVED_LETTER: FeedbackLetter = {
+  id: 301,
+  lesson: 'P4 English - Creative Writing',
+  stamp: 'enactment',
+  recipients: ['STP Feedback AI'],
+  sentAt: 'Just now',
+  status: 'replied',
+  isNew: true,
+}
 
 const DISCOVER_CARDS: DiscoverCard[] = [
   { id: 1, cat: 'pacing',      eyebrow: 'YEAR 4 · MATHEMATICS', body: 'I tried something new with transitions this week — moving from whole-class to pairs, then back again. I want to know if the rhythm felt right from the outside.', who: 'A teacher in Tampines',    time: '2 hours ago',  stamp: 'preparation' },
@@ -27,6 +47,10 @@ interface LetterboxStore {
   defaultStampIds: StampId[]
   selectedLetterId: number | null
   newLetterCount: number
+  myLettersTab: FeedbackLettersTab
+  sentDemoLetter: FeedbackLetter | null
+  receivedDemoLetter: FeedbackLetter | null
+  demoReplyTimerStarted: boolean
 
   setFlow: (f: FlowState) => void
   setWizardStep: (s: 1 | 2 | 3 | 4) => void
@@ -38,6 +62,10 @@ interface LetterboxStore {
   setDefaultStamps: (ids: StampId[]) => void
   setSelectedLetter: (id: number | null) => void
   decrementNewLetterCount: () => void
+  setMyLettersTab: (tab: FeedbackLettersTab) => void
+  sendDemoLetter: () => void
+  receiveDemoReply: () => void
+  markReplySeen: (id: number) => void
 }
 
 export const useLetterboxStore = create<LetterboxStore>((set) => ({
@@ -62,7 +90,11 @@ export const useLetterboxStore = create<LetterboxStore>((set) => ({
   discoverCards: DISCOVER_CARDS,
   defaultStampIds: ['culture'],
   selectedLetterId: null,
-  newLetterCount: 1,
+  newLetterCount: 0,
+  myLettersTab: 'received',
+  sentDemoLetter: null,
+  receivedDemoLetter: null,
+  demoReplyTimerStarted: false,
 
   setFlow: (f) => set({ flow: f }),
   setWizardStep: (s) => set({ wizardStep: s }),
@@ -104,4 +136,37 @@ export const useLetterboxStore = create<LetterboxStore>((set) => ({
 
   decrementNewLetterCount: () =>
     set((s) => ({ newLetterCount: Math.max(0, s.newLetterCount - 1) })),
+
+  setMyLettersTab: (tab) => set({ myLettersTab: tab }),
+
+  sendDemoLetter: () =>
+    set((s) => ({
+      sentDemoLetter: { ...DEMO_SENT_LETTER },
+      receivedDemoLetter: null,
+      demoReplyTimerStarted: true,
+      newLetterCount: 0,
+      myLettersTab: 'sent',
+      draft: {
+        ...s.draft,
+        lesson: 'P4 English - Creative Writing',
+        stampId: 'enactment',
+        stampIds: ['enactment'],
+      },
+    })),
+
+  receiveDemoReply: () =>
+    set(() => ({
+      sentDemoLetter: null,
+      receivedDemoLetter: { ...DEMO_RECEIVED_LETTER },
+      newLetterCount: 1,
+      myLettersTab: 'received',
+    })),
+
+  markReplySeen: (id) =>
+    set((s) => ({
+      receivedDemoLetter: s.receivedDemoLetter?.id === id
+        ? { ...s.receivedDemoLetter, isNew: false }
+        : s.receivedDemoLetter,
+      newLetterCount: s.receivedDemoLetter?.id === id ? 0 : s.newLetterCount,
+    })),
 }))

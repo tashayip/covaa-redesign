@@ -194,7 +194,7 @@ function ContactSelector({ showError }: { showError?: boolean }) {
 const PROCESS_STEPS = [
   { icon: '🎬', label: 'Record', desc: 'Film your lesson — phone on a tripod works fine' },
   { icon: '✉️', label: 'Share',  desc: 'Upload a link or file and write what you want feedback on' },
-  { icon: '💌', label: 'Receive', desc: 'Get a thoughtful letter back from your mentor, peers, or Orchid AI' },
+  { icon: '💌', label: 'Receive', desc: 'Get a thoughtful letter back from your mentor, peers, or STP Feedback AI' },
 ]
 
 function Step1({ onNext }: { onNext: () => void }) {
@@ -326,7 +326,7 @@ function Step3({ onNext, onBack }: { onNext: () => void; onBack: () => void }) {
           <FormLabel required>Lesson title</FormLabel>
           <IconInput
             icon="📖"
-            placeholder="e.g. P4 English – Descriptive Writing"
+            placeholder="e.g. P4 English - Creative Writing"
             value={draft.lesson}
             onChange={(v) => updateDraft({ lesson: v })}
           />
@@ -441,7 +441,7 @@ function Step4({ onBack, onSend, sending }: { onBack: () => void; onSend: () => 
         <div>
           <FormLabel>Send to</FormLabel>
           <ContactSelector showError={triedSend} />
-          <p className="text-[11px] text-muted-foreground mt-1.5">For richer feedback, add a colleague or mentor alongside Orchid AI.</p>
+          <p className="text-[11px] text-muted-foreground mt-1.5">For richer feedback, add a colleague or mentor alongside STP Feedback AI.</p>
         </div>
 
         <Separator />
@@ -515,7 +515,7 @@ function Step4({ onBack, onSend, sending }: { onBack: () => void; onSend: () => 
           />
           <div>
             <p className="text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors">
-              Post publicly to Open Letters
+              Post publicly to the Community
             </p>
             <p className="text-[11px] text-muted-foreground mt-0.5">
               Any teacher in the community can read and respond — anonymously if you prefer
@@ -541,11 +541,15 @@ function Step4({ onBack, onSend, sending }: { onBack: () => void; onSend: () => 
 
 // ─── main ────────────────────────────────────────────────────────────────────
 
+let demoReplyTimer: ReturnType<typeof setTimeout> | null = null
+
 export function LetterboxMain() {
-  const { flow, setFlow, wizardStep, setWizardStep } = useLetterboxStore(
+  const { flow, setFlow, wizardStep, setWizardStep, sendDemoLetter, receiveDemoReply } = useLetterboxStore(
     useShallow((s) => ({
       flow: s.flow, setFlow: s.setFlow,
       wizardStep: s.wizardStep, setWizardStep: s.setWizardStep,
+      sendDemoLetter: s.sendDemoLetter,
+      receiveDemoReply: s.receiveDemoReply,
     }))
   )
   const [sending, setSending] = useState(false)
@@ -558,26 +562,33 @@ export function LetterboxMain() {
     setSending(true)
     setTimeout(() => {
       setSending(false)
+      sendDemoLetter()
       setFlow('transit')
       setWizardStep(1)
+      if (!demoReplyTimer) {
+        demoReplyTimer = setTimeout(() => {
+          receiveDemoReply()
+          demoReplyTimer = null
+        }, 10000)
+      }
       toast.success('Your letter is sealed and on its way ✉️', {
-        description: "You'll hear back soon — keep an eye on My Letters.",
+        description: "You'll hear back soon from STP Feedback AI.",
       })
     }, 700)
   }
 
   const pageTitle =
-    flow === 'transit'  ? 'My letters' :
-    flow === 'discover' ? 'Open letters' :
+    flow === 'transit'  ? 'Feedback Letters' :
+    flow === 'discover' ? 'Community' :
     wizardStep === 1 ? 'How does this work?' :
     wizardStep === 2 ? 'What would you like feedback on?' :
     wizardStep === 3 ? 'Describe your lesson' :
                        'Your ask'
 
   const pageSubtitle =
-    flow === 'transit'  ? 'Letters you have received and letters you have sent.' :
+    flow === 'transit'  ? 'Letters you have received and letters you have sent to others or STP Feedback AI.' :
     flow === 'discover' ? "Letters from teachers who'd welcome a second pair of eyes." :
-    wizardStep === 1 ? 'Describe your lesson, tell us what you want to know, and send it. Replies come back as letters — like the ones in Open Letters.' :
+    wizardStep === 1 ? 'Describe your lesson, tell us what you want to know, and send it. Replies come back as letters — like the ones in Community.' :
     wizardStep === 2 ? 'Choose one or more areas of teaching you want feedback on. You can select multiple.' :
     wizardStep === 3 ? 'Add your recording and give the lesson a title.' :
                        'Tell us who to send it to and exactly what you want to know.'

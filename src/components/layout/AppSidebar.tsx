@@ -22,8 +22,8 @@ import type { FlowState } from '@/types'
 type NavItem = { state: FlowState; label: string; Icon: React.ElementType; description: string }
 
 const NAV_ITEMS: NavItem[] = [
-  { state: 'transit',  label: 'My Letters',    Icon: Mail,   description: 'Sent and received letters' },
-  { state: 'discover', label: 'Open Letters',  Icon: Globe,  description: 'Community letters' },
+  { state: 'transit',  label: 'Feedback Letters', Icon: Mail,   description: 'Sent and received letters' },
+  { state: 'discover', label: 'Community',        Icon: Globe,  description: 'Community letters' },
   { state: 'settings', label: 'Learning Goals', Icon: Target, description: 'Default feedback areas' },
 ]
 
@@ -52,8 +52,8 @@ export function AppSidebar() {
           type="button"
           onClick={goHome}
           className="flex w-full items-center gap-2.5 rounded-lg text-left outline-hidden transition-colors hover:bg-sidebar-accent/70 focus-visible:ring-2 focus-visible:ring-sidebar-ring group-data-[collapsible=icon]:justify-center"
-          aria-label="Go to My Letters"
-          title="Go to My Letters"
+          aria-label="Go to Feedback Letters"
+          title="Go to Feedback Letters"
         >
           <div className="w-6 h-6 rounded-full bg-sidebar-primary flex items-center justify-center shrink-0">
             <span className="text-[10px] font-bold text-sidebar-primary-foreground">L</span>

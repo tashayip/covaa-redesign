@@ -1,6 +1,7 @@
 export type StampId = 'culture' | 'preparation' | 'enactment' | 'assessment' | 'other'
 export type FlowState = 'write' | 'transit' | 'discover' | 'settings' | 'letter-detail'
 export type ContactType = 'mentor' | 'ai' | 'peer'
+export type FeedbackLettersTab = 'received' | 'sent'
 
 export interface Contact {
   id: string
@@ -40,4 +41,14 @@ export interface DiscoverCard {
   who: string
   time: string
   stamp: StampId
+}
+
+export interface FeedbackLetter {
+  id: number
+  lesson: string
+  stamp: StampId
+  recipients: string[]
+  sentAt: string
+  status: 'in_transit' | 'replied' | 'sent'
+  isNew: boolean
 }

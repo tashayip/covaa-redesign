@@ -10,8 +10,8 @@ import { Toaster } from '@/components/ui/sonner'
 
 const FLOW_LABELS: Record<string, string> = {
   write:           'Get Feedback',
-  transit:         'My Letters',
-  discover:        'Open Letters',
+  transit:         'Feedback Letters',
+  discover:        'Community',
   settings:        'Learning Goals',
   'letter-detail': 'Letter',
 }
@@ -77,7 +77,7 @@ export default function App() {
            flow === 'letter-detail' ? <LetterDetail /> :
                                       <LetterboxMain />}
         </SidebarInset>
-        <Toaster position="bottom-right" richColors closeButton />
+        <Toaster position="top-right" richColors closeButton />
       </SidebarProvider>
     </TooltipProvider>
   )
