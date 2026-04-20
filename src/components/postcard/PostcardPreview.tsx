@@ -1,3 +1,5 @@
+import { useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
 import { useLetterboxStore } from '@/store/letterbox-store'
 import { useShallow } from 'zustand/react/shallow'
 import { StampSVG } from '@/components/stamps/StampSVG'
@@ -33,9 +35,10 @@ function StampStack({ ids, maskPrefix }: { ids: StampId[]; maskPrefix: string })
 interface PostcardPreviewProps {
   sending?: boolean
   isEmpty?: boolean
+  entryAnimation?: boolean
 }
 
-export function PostcardPreview({ sending = false, isEmpty = false }: PostcardPreviewProps) {
+export function PostcardPreview({ sending = false, isEmpty = false, entryAnimation = false }: PostcardPreviewProps) {
   const { draft, contacts, selectedIds } = useLetterboxStore(
     useShallow((s) => ({ draft: s.draft, contacts: s.contacts, selectedIds: s.selectedIds }))
   )
@@ -114,7 +117,13 @@ export function PostcardPreview({ sending = false, isEmpty = false }: PostcardPr
   const askText = draft.ask ? `I'd especially love your thoughts on: ${draft.ask}` : `I'd especially love your thoughts on…`
   const signoff = `— ${draft.signAs || 'with care'}`
   const addrTo  = names[0] ?? 'Dear Friend'
-  const showTape    = !!(draft.attachmentName || draft.youtubeLink)
+  const showTape = !!(draft.attachmentName || draft.youtubeLink)
+  const [tapeVisible, setTapeVisible] = useState(entryAnimation ? false : showTape)
+  useEffect(() => {
+    if (!entryAnimation) { setTapeVisible(showTape); return }
+    const t = setTimeout(() => setTapeVisible(showTape), 520)
+    return () => clearTimeout(t)
+  }, [showTape, entryAnimation])
   const tapeLabel   = draft.attachmentName
     ? draft.attachmentName.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ').slice(0, 26)
     : 'YouTube recording'
@@ -122,8 +131,13 @@ export function PostcardPreview({ sending = false, isEmpty = false }: PostcardPr
   return (
     <div className="sticky top-24 flex flex-col gap-0">
       {/* Cassette — floats outside card */}
-      <div className="relative">
-        <CassetteTape labelText={tapeLabel} visible={showTape} />
+      <motion.div
+        className="relative"
+        initial={entryAnimation ? { opacity: 0, y: -24 } : false}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <CassetteTape labelText={tapeLabel} visible={tapeVisible} />
 
         {/* Postcard card */}
         <div
@@ -199,7 +213,7 @@ export function PostcardPreview({ sending = false, isEmpty = false }: PostcardPr
           <span className="text-[9px] font-medium tracking-[1.8px] uppercase opacity-50" style={{ color: 'var(--color-ink-4)' }}>CoVAA Letterbox</span>
           <span className="text-[9px] font-medium tracking-[1.8px] uppercase opacity-50" style={{ color: 'var(--color-ink-4)' }}>Singapore · APR 2026</span>
         </div>
-      </div>
+      </motion.div>
     </div>
   )
 }

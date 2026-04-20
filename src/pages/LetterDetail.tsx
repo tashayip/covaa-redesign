@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useLetterboxStore } from '@/store/letterbox-store'
 import { useShallow } from 'zustand/react/shallow'
@@ -533,12 +533,13 @@ interface Annotation {
 
 // ─── recording player ───────────────────────────────────────────────────────
 
-function RecordingPlayer({ recording }: { recording: Recording }) {
+function RecordingPlayer({ recording, iframeRef }: { recording: Recording; iframeRef?: React.RefObject<HTMLIFrameElement | null> }) {
   if (recording.type === 'video') {
     return (
       <div className="aspect-video rounded-xl overflow-hidden border border-border bg-black">
         <iframe
-          src={`https://www.youtube.com/embed/${recording.youtubeId}?rel=0&modestbranding=1`}
+          ref={iframeRef}
+          src={`https://www.youtube.com/embed/${recording.youtubeId}?rel=0&modestbranding=1&enablejsapi=1`}
           title={recording.title}
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
@@ -635,7 +636,14 @@ function STPPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
 
 // ─── feedback accordion ───────────────────────────────────────────────────────
 
-function FeedbackAccordion({ title, icon, items }: { title: string; icon?: React.ReactNode; items: string[] }) {
+function FeedbackAccordion({
+  title, icon, items, renderItem,
+}: {
+  title: string
+  icon?: React.ReactNode
+  items: string[]
+  renderItem?: (item: string, i: number) => React.ReactNode
+}) {
   const [open, setOpen] = useState(false)
   return (
     <div className="border border-border rounded-xl overflow-hidden bg-background">
@@ -659,7 +667,9 @@ function FeedbackAccordion({ title, icon, items }: { title: string; icon?: React
               {items.map((item, i) => (
                 <li key={i} className="flex items-start gap-3">
                   <span className="text-muted-foreground/40 text-[11px] mt-0.5 shrink-0">•</span>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{item}</p>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {renderItem ? renderItem(item, i) : item}
+                  </p>
                 </li>
               ))}
             </ul>
@@ -688,22 +698,6 @@ function NotesTab({ annotations, annTimeStart, annTimeEnd, annNote, setAnnTimeSt
 
   return (
     <div className="space-y-5">
-
-      {/* Share with colleagues */}
-      <div className="rounded-xl border border-border bg-background p-4 space-y-3">
-        <div className="flex items-center gap-2">
-          <svg className="w-4 h-4 text-foreground/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-          <p className="text-sm font-semibold text-foreground">Invite a colleague</p>
-        </div>
-        <p className="text-xs text-muted-foreground">Share this letter and its feedback with a colleague — they can read the replies and add their own annotations.</p>
-        <button
-          onClick={handleCopy}
-          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors"
-        >
-          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-          {copyDone ? 'Link copied!' : 'Copy link'}
-        </button>
-      </div>
 
       {/* Annotations */}
       <div>
@@ -829,7 +823,15 @@ function HumanFeedbackForm({
 
 // ─── in-transit empty state ───────────────────────────────────────────────────
 
-function PendingReplyState({ from }: { from: string }) {
+function PendingReplyState({
+  from,
+  sourceType,
+  onAlternativeClick,
+}: {
+  from: string
+  sourceType?: 'ai' | 'teacher'
+  onAlternativeClick?: () => void
+}) {
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center">
       <div className="relative mb-6">
@@ -844,9 +846,122 @@ function PendingReplyState({ from }: { from: string }) {
       </p>
       <div className="mt-6 flex items-center gap-2 text-[11px] text-muted-foreground">
         <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-        Sent - reply pending
+        Sent — reply pending
       </div>
+      {sourceType && onAlternativeClick && (
+        <div className="mt-8 max-w-xs w-full rounded-xl border border-border bg-background p-4 text-left space-y-2">
+          <p className="text-xs font-semibold text-foreground">While you wait…</p>
+          {sourceType === 'ai' ? (
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              You've sent this to STP Feedback AI. A peer's perspective can add something different — send it to a colleague too.
+            </p>
+          ) : (
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              You've sent this to a peer. Get instant structured feedback from STP Feedback AI using the STP Framework as well.
+            </p>
+          )}
+          <button
+            onClick={onAlternativeClick}
+            className={`mt-1 w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-colors ${
+              sourceType === 'ai'
+                ? 'bg-blue-600 text-white hover:bg-blue-700'
+                : 'bg-violet-600 text-white hover:bg-violet-700'
+            }`}
+          >
+            {sourceType === 'ai' ? 'Send to a colleague →' : 'Get AI feedback →'}
+          </button>
+        </div>
+      )}
     </div>
+  )
+}
+
+// ─── rich feedback text ───────────────────────────────────────────────────────
+
+const STP_AREAS_FLAT: string[] = STP_PROCESSES.flatMap((p) => p.areas)
+
+function toSentenceCase(s: string) {
+  return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase()
+}
+
+function parseMinutes(minStr: string, secStr?: string): number {
+  return parseInt(minStr, 10) * 60 + (secStr ? parseInt(secStr, 10) : 0)
+}
+
+interface RichFeedbackTextProps {
+  text: string
+  onTimestampClick?: (seconds: number) => void
+  onSTPClick?: () => void
+}
+
+function RichFeedbackText({ text, onTimestampClick, onSTPClick }: RichFeedbackTextProps) {
+  type Segment =
+    | { type: 'text'; value: string }
+    | { type: 'timestamp'; label: string; seconds: number }
+    | { type: 'stp'; area: string }
+
+  const segments: Segment[] = []
+
+  // Sort STP areas longest-first so longer phrases match before substrings
+  const sortedAreas = [...STP_AREAS_FLAT].sort((a, b) => b.length - a.length)
+
+  // We'll build a combined regex that matches either an STP area or a timestamp
+  const stpPattern = sortedAreas.map((a) => a.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')
+  // Timestamp: "at 14 min", "at the 14-minute mark", "14:30 min", "14 min", etc.
+  const tsPattern = '(?:at (?:the )?)?\\b(\\d+)(?::(\\d{2}))?[\\s\\-]?min(?:ute)?s?(?:\\s+mark)?'
+  const combined = new RegExp(`(${stpPattern})|(${tsPattern})`, 'gi')
+
+  let last = 0
+  let match: RegExpExecArray | null
+  while ((match = combined.exec(text)) !== null) {
+    if (match.index > last) {
+      segments.push({ type: 'text', value: text.slice(last, match.index) })
+    }
+    if (match[1]) {
+      // STP area matched
+      segments.push({ type: 'stp', area: match[1] })
+    } else {
+      // Timestamp matched — match[3] = minutes, match[4] = seconds (optional)
+      const secs = parseMinutes(match[3], match[4])
+      const label = match[4] ? `${match[3]}:${match[4]}` : `${match[3]} min`
+      segments.push({ type: 'timestamp', label, seconds: secs })
+    }
+    last = match.index + match[0].length
+  }
+  if (last < text.length) segments.push({ type: 'text', value: text.slice(last) })
+
+  return (
+    <>
+      {segments.map((seg, i) => {
+        if (seg.type === 'text') return <span key={i}>{seg.value}</span>
+        if (seg.type === 'timestamp') {
+          return (
+            <button
+              key={i}
+              type="button"
+              onClick={() => onTimestampClick?.(seg.seconds)}
+              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-semibold bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 mx-0.5 transition-colors"
+            >
+              ⏱ {seg.label}
+            </button>
+          )
+        }
+        // STP citation
+        const areaLower = seg.area.toLowerCase()
+        const label = `STP: ${toSentenceCase(areaLower)}`
+        return (
+          <button
+            key={i}
+            type="button"
+            onClick={() => onSTPClick?.()}
+            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-semibold bg-violet-50 text-violet-700 border border-violet-200 hover:bg-violet-100 mx-0.5 transition-colors"
+            title="View in STP Framework"
+          >
+            {label}
+          </button>
+        )
+      })}
+    </>
   )
 }
 
@@ -884,6 +999,14 @@ export function LetterDetail() {
   const [stpOpen, setStpOpen] = useState(false)
   const [copyDone, setCopyDone] = useState(false)
   const [annotations, setAnnotations] = useState<Annotation[]>([])
+  const iframeRef = useRef<HTMLIFrameElement | null>(null)
+
+  function seekVideo(seconds: number) {
+    iframeRef.current?.contentWindow?.postMessage(
+      JSON.stringify({ event: 'command', func: 'seekTo', args: [seconds, true] }),
+      '*'
+    )
+  }
   const [annTimeStart, setAnnTimeStart] = useState('')
   const [annTimeEnd, setAnnTimeEnd] = useState('')
   const [annNote, setAnnNote] = useState('')
@@ -928,10 +1051,8 @@ export function LetterDetail() {
     if (!selectedLetterId) return
     markFeedbackSent(selectedLetterId)
     setMyLettersTab('sent')
-    setSelectedLetter(null)
-    setFlow('transit')
     toast.success('Feedback sent', {
-      description: `Your feedback for ${targetName} is now in Sent.`,
+      description: `Your feedback for ${targetName} has been sent.`,
     })
   }
 
@@ -973,6 +1094,7 @@ export function LetterDetail() {
   const schoolOrRole = data.schoolOrRole ?? (sourceType === 'ai' ? 'Singapore Teaching Practice' : '')
   const wasSentByMe = sentFeedbackIds.includes(data.id) || data.relationship === 'sent'
   const isFeedbackRequest = data.relationship === 'toRespond' && !sentFeedbackIds.includes(data.id)
+  const hasSentMyFeedback = data.relationship === 'toRespond' && sentFeedbackIds.includes(data.id)
   const feedbackOwner = data.requestedFor ?? data.from
   const humanDraft = humanFeedbackDrafts[data.id] ?? { wentWell: '', improve: '' }
   const sourceLabel = isFeedbackRequest ? 'Feedback request from' : wasSentByMe ? 'Feedback sent to' : 'Feedback from'
@@ -993,9 +1115,9 @@ export function LetterDetail() {
             <div className="flex items-center gap-2">
               <button
                 onClick={handleCopy}
-                className="flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground hover:text-foreground border border-border rounded-lg px-3 py-1.5 transition-colors hover:bg-muted"
+                className="flex items-center gap-2 bg-white border border-border text-foreground font-semibold px-4 py-1.5 rounded-lg text-sm shadow-sm hover:bg-muted transition-colors"
               >
-                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
                 {copyDone ? 'Link copied!' : data.isOpenLetter ? 'Share to edit' : 'Share letter'}
               </button>
               <button
@@ -1011,47 +1133,52 @@ export function LetterDetail() {
         {/* Two-column grid */}
         <div className="mx-auto max-w-5xl grid grid-cols-1 xl:grid-cols-[360px_1fr] gap-10 items-start">
 
-          {/* ── Left: lesson info ── */}
-          <div className="space-y-5">
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <div
-                  className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-base font-bold text-white shadow-sm"
-                  style={{ backgroundColor: avatarColor }}
-                >
-                  {avatarLabel}
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold uppercase text-muted-foreground [letter-spacing:0.14em]">{sourceLabel}</p>
-                  <p className="truncate text-sm font-semibold text-foreground">{sourceType === 'ai' ? 'STP Feedback AI' : data.from}</p>
-                  {schoolOrRole && <p className="truncate text-xs text-muted-foreground">{schoolOrRole}</p>}
-                </div>
-              </div>
-              <div>
-                <h2 className="text-2xl font-semibold text-foreground leading-tight mb-1">{data.lesson}</h2>
-                <p className="text-[12px] text-muted-foreground">📅 {data.date}</p>
-              </div>
+          {/* ── Left: lesson info (sticky) ── */}
+          <div className="space-y-5 sticky top-8">
+            {/* Lesson title — highest hierarchy */}
+            <div>
+              <h2 className="text-3xl font-bold text-foreground leading-tight">{data.lesson}</h2>
             </div>
 
-            <RecordingPlayer recording={data.recording} />
+            <RecordingPlayer recording={data.recording} iframeRef={iframeRef} />
 
-            {/* Lesson context */}
-            <div className="space-y-1">
-              <p className="text-[10px] font-semibold uppercase tracking-[2px] text-muted-foreground">Lesson context</p>
-              <p className="font-serif italic text-sm text-foreground/75 leading-relaxed">{data.context}</p>
+            {/* Cluster: who + date — below video */}
+            <div className="flex items-center gap-3 pt-1">
+              <div
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white shadow-sm"
+                style={{ backgroundColor: avatarColor }}
+              >
+                {avatarLabel}
+              </div>
+              <div className="min-w-0">
+                <p className="text-[10px] font-semibold uppercase text-muted-foreground [letter-spacing:0.14em]">{sourceLabel}</p>
+                <p className="truncate text-sm font-semibold text-foreground">{sourceType === 'ai' ? 'STP Feedback AI' : data.from}</p>
+                {schoolOrRole && <p className="truncate text-xs text-muted-foreground">{schoolOrRole}</p>}
+              </div>
+              <p className="ml-auto text-[11px] text-muted-foreground whitespace-nowrap">📅 {data.date}</p>
             </div>
 
-            {/* Your ask */}
-            <div className="space-y-1">
-              <p className="text-[10px] font-semibold uppercase tracking-[2px] text-muted-foreground">Feedback needed</p>
-              <p className="font-serif italic text-sm text-foreground/80 leading-relaxed">{data.ask}</p>
+            {/* Cluster: context + ask */}
+            <div className="space-y-4 pt-1">
+              <div className="space-y-1">
+                <p className="text-[10px] font-semibold uppercase tracking-[2px] text-muted-foreground">Lesson context</p>
+                <p className="font-serif italic text-sm text-foreground/75 leading-relaxed">{data.context}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-[10px] font-semibold uppercase tracking-[2px] text-muted-foreground">Feedback needed</p>
+                <p className="font-serif italic text-sm text-foreground/80 leading-relaxed">{data.ask}</p>
+              </div>
             </div>
           </div>
 
           {/* ── Right: feedback ── */}
           <div>
             {isPending ? (
-              <PendingReplyState from={data.from} />
+              <PendingReplyState
+                from={data.from}
+                sourceType={sourceType}
+                onAlternativeClick={() => setFlow('write')}
+              />
             ) : (
               <Tabs defaultValue="feedback">
                 <TabsList className="w-full bg-black/[0.07] mb-6">
@@ -1060,6 +1187,7 @@ export function LetterDetail() {
                 </TabsList>
 
                 <TabsContent value="feedback" className="space-y-4">
+                  {/* State (iv): received from peer — pending my response */}
                   {isFeedbackRequest ? (
                     <HumanFeedbackForm
                       userName={feedbackOwner}
@@ -1067,7 +1195,35 @@ export function LetterDetail() {
                       onChange={(patch) => updateHumanFeedbackDraft(data.id, patch)}
                       onSend={() => handleSendHumanFeedback(feedbackOwner)}
                     />
+                  ) : hasSentMyFeedback ? (
+                    /* State (v): received from peer — sent my response */
+                    <>
+                      <div className="mb-4 pb-4 border-b border-border/40 flex items-center gap-2">
+                        <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-[1.8px]">Your feedback for {feedbackOwner}</span>
+                        <span className="ml-auto text-[11px] text-green-600 font-semibold flex items-center gap-1">✓ Sent</span>
+                      </div>
+                      <div className="rounded-xl border border-green-200 bg-green-50/60 overflow-hidden">
+                        <div className="px-5 py-3 border-b border-green-200/60 flex items-center gap-2">
+                          <span className="w-4 h-4 rounded-full bg-green-500 flex items-center justify-center text-white text-[9px] font-bold shrink-0">✓</span>
+                          <p className="text-sm font-semibold text-green-800">What went well</p>
+                        </div>
+                        <div className="px-5 py-4">
+                          <p className="text-sm text-green-900 leading-relaxed whitespace-pre-wrap">{humanDraft.wentWell || '—'}</p>
+                        </div>
+                      </div>
+                      <div className="rounded-xl border border-amber-200 bg-amber-50/60 overflow-hidden">
+                        <div className="px-5 py-3 border-b border-amber-200/60 flex items-center gap-2">
+                          <span className="text-amber-600 text-base leading-none">→</span>
+                          <p className="text-sm font-semibold text-amber-800">Areas to work on</p>
+                        </div>
+                        <div className="px-5 py-4">
+                          <p className="text-sm text-amber-900 leading-relaxed whitespace-pre-wrap">{humanDraft.improve || '—'}</p>
+                        </div>
+                      </div>
+                      <p className="text-xs text-muted-foreground text-right pt-1">— You</p>
+                    </>
                   ) : !data.letter || !hasAiFeedback ? (
+                    /* No feedback yet */
                     <div className="flex flex-col items-center gap-4 py-16 text-center">
                       {canRequestAiFeedback ? (
                         <>
@@ -1077,7 +1233,7 @@ export function LetterDetail() {
                           <div className="space-y-1.5">
                             <p className="font-semibold text-foreground">No AI feedback yet</p>
                             <p className="text-sm text-muted-foreground max-w-xs">
-                              Send this feedback to STP Feedback AI to get structured feedback using the STP Framework too.
+                              Send this to STP Feedback AI to get structured feedback using the STP Framework too.
                             </p>
                           </div>
                           <button
@@ -1094,55 +1250,70 @@ export function LetterDetail() {
                           </div>
                           <div className="space-y-1.5">
                             <p className="font-semibold text-foreground">Feedback not ready yet</p>
-                            <p className="text-sm text-muted-foreground max-w-xs">
-                              This letter is waiting for feedback.
-                            </p>
+                            <p className="text-sm text-muted-foreground max-w-xs">This letter is waiting for feedback.</p>
                           </div>
                         </>
                       )}
                     </div>
-                  ) : (<>
-                  {/* Greeting — prominent */}
-                  <div className="mb-6 pb-5 border-b border-border/40">
-                    <p className="font-serif text-2xl text-foreground leading-tight">{data.letter.greeting}</p>
-                  </div>
+                  ) : (
+                    /* State (ii)/(iii): feedback received */
+                    <>
+                      {/* Greeting */}
+                      <div className="mb-6 pb-5 border-b border-border/40">
+                        <p className="font-serif text-2xl text-foreground leading-tight">{data.letter.greeting}</p>
+                      </div>
 
-                  {/* What went well */}
-                  <div className="rounded-xl border border-green-200 bg-green-50/60 overflow-hidden">
-                    <div className="px-5 py-3 border-b border-green-200/60 flex items-center gap-2">
-                      <span className="w-4 h-4 rounded-full bg-green-500 flex items-center justify-center text-white text-[9px] font-bold shrink-0">✓</span>
-                      <p className="text-sm font-semibold text-green-800">What went well</p>
-                    </div>
-                    <ul className="px-5 py-4 space-y-3">
-                      {data.letter.wellDone.map((item, i) => (
-                        <li key={i} className="flex items-start gap-3">
-                          <span className="text-green-400 text-[11px] mt-0.5 shrink-0">•</span>
-                          <p className="text-sm text-green-900 leading-relaxed">{item}</p>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                      {/* What went well */}
+                      <div className="rounded-xl border border-green-200 bg-green-50/60 overflow-hidden">
+                        <div className="px-5 py-3 border-b border-green-200/60 flex items-center gap-2">
+                          <span className="w-4 h-4 rounded-full bg-green-500 flex items-center justify-center text-white text-[9px] font-bold shrink-0">✓</span>
+                          <p className="text-sm font-semibold text-green-800">What went well</p>
+                        </div>
+                        <ul className="px-5 py-4 space-y-3">
+                          {data.letter.wellDone.map((item, i) => (
+                            <li key={i} className="flex items-start gap-3">
+                              <span className="text-green-400 text-[11px] mt-0.5 shrink-0">•</span>
+                              <p className="text-sm text-green-900 leading-relaxed">
+                                <RichFeedbackText text={item} onTimestampClick={seekVideo} onSTPClick={() => setStpOpen(true)} />
+                              </p>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
 
-                  {/* Try this next time */}
-                  <div className="rounded-xl border border-amber-200 bg-amber-50/60 overflow-hidden">
-                    <div className="px-5 py-3 border-b border-amber-200/60 flex items-center gap-2">
-                      <span className="text-amber-600 text-base leading-none">→</span>
-                      <p className="text-sm font-semibold text-amber-800">Try this next time</p>
-                    </div>
-                    <ul className="px-5 py-4 space-y-3">
-                      {data.letter.tryNext.map((item, i) => (
-                        <li key={i} className="flex items-start gap-3">
-                          <span className="text-amber-400 text-[11px] mt-0.5 shrink-0">•</span>
-                          <p className="text-sm text-amber-900 leading-relaxed">{item}</p>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                      {/* Try this next time */}
+                      <div className="rounded-xl border border-amber-200 bg-amber-50/60 overflow-hidden">
+                        <div className="px-5 py-3 border-b border-amber-200/60 flex items-center gap-2">
+                          <span className="text-amber-600 text-base leading-none">→</span>
+                          <p className="text-sm font-semibold text-amber-800">Try this next time</p>
+                        </div>
+                        <ul className="px-5 py-4 space-y-3">
+                          {data.letter.tryNext.map((item, i) => (
+                            <li key={i} className="flex items-start gap-3">
+                              <span className="text-amber-400 text-[11px] mt-0.5 shrink-0">•</span>
+                              <p className="text-sm text-amber-900 leading-relaxed">
+                                <RichFeedbackText text={item} onTimestampClick={seekVideo} onSTPClick={() => setStpOpen(true)} />
+                              </p>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
 
-                  {/* Collapsible sections */}
-                  <FeedbackAccordion title="Before you move on…" icon={<Lightbulb className="w-4 h-4 text-violet-500 shrink-0" />} items={data.letter.reflect} />
-                  <FeedbackAccordion title="What caught my attention" icon={<Eye className="w-4 h-4 text-sky-500 shrink-0" />} items={data.letter.teachingActions} />
-                  </>)}
+                      {/* Collapsible sections */}
+                      <FeedbackAccordion
+                        title="Before you move on…"
+                        icon={<Lightbulb className="w-4 h-4 text-violet-500 shrink-0" />}
+                        items={data.letter.reflect}
+                        renderItem={(item) => <RichFeedbackText text={item} onTimestampClick={seekVideo} onSTPClick={() => setStpOpen(true)} />}
+                      />
+                      <FeedbackAccordion
+                        title="What caught my attention"
+                        icon={<Eye className="w-4 h-4 text-sky-500 shrink-0" />}
+                        items={data.letter.teachingActions}
+                        renderItem={(item) => <RichFeedbackText text={item} onTimestampClick={seekVideo} onSTPClick={() => setStpOpen(true)} />}
+                      />
+                    </>
+                  )}
                 </TabsContent>
 
                 <TabsContent value="annotations">

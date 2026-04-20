@@ -21,7 +21,7 @@ import { STAMP_ORDER } from '@/components/stamps/StampSVG'
 function FormLabel({ children, required }: { children: React.ReactNode; required?: boolean }) {
   return (
     <span className="block text-[10px] font-semibold uppercase tracking-[2.2px] text-muted-foreground mb-1.5">
-      {children}{required && <span className="text-[#C86948] ml-0.5">*</span>}
+      {children}{required && <span className="text-red-600 font-bold text-base ml-1 leading-none">*</span>}
     </span>
   )
 }
@@ -101,7 +101,7 @@ function ContactSelector({ showError }: { showError?: boolean }) {
       >
         {selectedContacts.length === 0 ? (
           <>
-            <span className="text-sm text-muted-foreground">Add recipients…</span>
+            <span className="text-sm text-muted-foreground">Add anyone…</span>
             <span className="ml-auto text-muted-foreground text-xs">▾</span>
           </>
         ) : (
@@ -176,7 +176,7 @@ function ContactSelector({ showError }: { showError?: boolean }) {
               <input
                 type="email"
                 className="w-full text-sm bg-transparent outline-none placeholder:text-muted-foreground"
-                placeholder="Add colleague — name@school.edu.sg, press Enter"
+                placeholder="Add anyone — name@school.edu.sg, press Enter"
                 value={addEmail}
                 onChange={(e) => setAddEmail(e.target.value)}
                 onKeyDown={handleAddEmail}
@@ -231,11 +231,6 @@ function Step2SendTo({ onNext, onBack }: { onNext: () => void; onBack: () => voi
   const [showError, setShowError] = useState(false)
   const [calloutVisible, setCalloutVisible] = useState(true)
 
-  useEffect(() => {
-    const t = setTimeout(() => setCalloutVisible(false), 4500)
-    return () => clearTimeout(t)
-  }, [])
-
   function handleNext() {
     if (selectedIds.length === 0) { setShowError(true); return }
     onNext()
@@ -244,7 +239,7 @@ function Step2SendTo({ onNext, onBack }: { onNext: () => void; onBack: () => voi
   return (
     <div className="animate-fade-up space-y-5">
       <div>
-        <FormLabel>Send to</FormLabel>
+        <FormLabel>Get feedback from</FormLabel>
         <ContactSelector showError={showError} />
         <p className="text-[11px] text-muted-foreground mt-1.5">For richer feedback, add another colleague alongside STP Feedback AI.</p>
 
@@ -254,21 +249,28 @@ function Step2SendTo({ onNext, onBack }: { onNext: () => void; onBack: () => voi
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: 0.25 }}
-              className="mt-3 flex items-start gap-2.5 px-3.5 py-3 rounded-xl bg-violet-50 border border-violet-200"
+              transition={{ duration: 0.22 }}
+              className="relative mt-1"
             >
-              <span className="text-violet-600 text-base shrink-0 mt-0.5">✦</span>
-              <p className="text-xs text-violet-800 leading-relaxed">
-                <span className="font-semibold">STP Feedback AI</span> is pre-selected so you can get feedback based on the STP Feedback Framework.
-              </p>
-              <button
-                type="button"
-                onClick={() => setCalloutVisible(false)}
-                className="shrink-0 text-violet-400 hover:text-violet-600 text-base leading-none mt-0.5"
-                aria-label="Dismiss"
-              >
-                ×
-              </button>
+              {/* Arrow pointing up toward the STP AI tag */}
+              <div className="absolute -top-1.5 left-5 w-3 h-3 bg-gray-900 rotate-45 z-10" />
+              <div className="relative z-20 bg-gray-900 text-white rounded-xl px-4 py-3.5 shadow-xl">
+                <div className="flex items-start gap-2.5">
+                  <span className="text-violet-400 text-base shrink-0 mt-0.5">✦</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm leading-relaxed text-gray-100">
+                      By getting feedback from <span className="font-semibold text-white">STP Feedback AI</span>, you will receive AI-powered feedback grounded in the STP Framework.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setCalloutVisible(false)}
+                      className="mt-2.5 px-3 py-1 rounded-md bg-white text-gray-900 text-xs font-semibold hover:bg-gray-100 transition-colors"
+                    >
+                      Got it
+                    </button>
+                  </div>
+                </div>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -389,10 +391,8 @@ function Step3({ onNext, onBack }: { onNext: () => void; onBack: () => void }) {
   const canContinue = draft.lesson.trim().length > 0 && hasRecording
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-[1fr_440px] gap-14 items-start animate-fade-up">
-      {/* Left: form */}
-      <div className="space-y-6">
-        {/* Lesson title */}
+    <div className="space-y-6 animate-fade-up">
+      {/* Lesson title */}
         <div>
           <FormLabel required>Lesson title</FormLabel>
           <IconInput
@@ -483,12 +483,6 @@ function Step3({ onNext, onBack }: { onNext: () => void; onBack: () => void }) {
             Continue →
           </Button>
         </div>
-      </div>
-
-      {/* Right: live postcard — cassette slams on when video is added */}
-      <div className="hidden xl:block">
-        <PostcardPreview />
-      </div>
     </div>
   )
 }
@@ -500,7 +494,7 @@ function Step5({ onBack, onSend, sending }: { onBack: () => void; onSend: () => 
   const [showHint, setShowHint] = useState(false)
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-[1fr_440px] gap-14 items-start animate-fade-up">
+    <div className="grid grid-cols-1 xl:grid-cols-[1fr_440px] gap-20 items-start animate-fade-up">
       {/* Left: form */}
       <div className="space-y-5">
 
@@ -557,7 +551,7 @@ function Step5({ onBack, onSend, sending }: { onBack: () => void; onSend: () => 
           <FormLabel>Sign as</FormLabel>
           <IconInput
             icon="✏️"
-            placeholder="Your name"
+            placeholder="Your preferred name"
             value={draft.signAs}
             onChange={(v) => updateDraft({ signAs: v })}
             className="bg-white"
@@ -590,9 +584,9 @@ function Step5({ onBack, onSend, sending }: { onBack: () => void; onSend: () => 
         </div>
       </div>
 
-      {/* Right: live postcard preview */}
+      {/* Right: live postcard preview — entry animation on step 5 */}
       <div className="hidden xl:block">
-        <PostcardPreview sending={sending} />
+        <PostcardPreview sending={sending} entryAnimation={true} />
       </div>
     </div>
   )
@@ -647,7 +641,7 @@ export function LetterboxMain() {
     wizardStep === 2 ? 'Who would you like feedback from?' :
     wizardStep === 3 ? 'Describe your lesson' :
     wizardStep === 4 ? 'What would you like feedback on?' :
-                       'Give more context on what feedback you need'
+                       'Can you give more context?'
 
   const pageSubtitle =
     flow === 'transit'  ? 'Letters you have received and letters you have sent to others or STP Feedback AI.' :
@@ -656,9 +650,9 @@ export function LetterboxMain() {
     wizardStep === 2 ? 'Choose who should receive your lesson and write back with feedback.' :
     wizardStep === 3 ? 'Add your recording and give the lesson a title.' :
     wizardStep === 4 ? 'Choose one or more areas of teaching you want feedback on. You can select multiple.' :
-                       'Tell us exactly what you want to know.'
+                       'Add any extra context that will help your reviewer give better feedback.'
 
-  const isWideStep = flow === 'write' && (wizardStep === 3 || wizardStep === 5)
+  const isWideStep = flow === 'write' && wizardStep === 5
 
   return (
     <main className="w-full px-8 xl:px-12 py-8">
@@ -687,7 +681,7 @@ export function LetterboxMain() {
             </div>
           )}
           {wizardStep === 3 && (
-            <div className="mx-auto max-w-5xl">
+            <div className="mx-auto max-w-2xl">
               <Step3 onNext={() => goToStep(4)} onBack={() => goToStep(2)} />
             </div>
           )}

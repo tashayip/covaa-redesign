@@ -15,7 +15,7 @@ import {
   SidebarSeparator,
   SidebarTrigger,
 } from '@/components/ui/sidebar'
-import { Mail, Globe, CircleHelp, Info, Sparkles, Target } from 'lucide-react'
+import { Mail, Globe, CircleHelp, Info, Plus, Target } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { FlowState } from '@/types'
 
@@ -78,8 +78,8 @@ export function AppSidebar() {
           className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:rounded-full"
           title="Share a Lesson"
         >
-          <Sparkles className="w-4 h-4 shrink-0" />
-          <span className="group-data-[collapsible=icon]:hidden">Get Feedback</span>
+          <Plus className="w-4 h-4 shrink-0" />
+          <span className="group-data-[collapsible=icon]:hidden">Start feedback session</span>
         </button>
       </div>
 
