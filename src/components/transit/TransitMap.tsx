@@ -222,15 +222,13 @@ function LetterCard({
 }) {
   const canOpen = true
   const isNewReply = letter.status === 'replied' && letter.isNew
-  const statusText = letter.relationship === 'toRespond'
-    ? `Requested by ${letter.personName}`
+  const descriptionText = letter.relationship === 'toRespond'
+    ? 'Waiting for your feedback'
     : letter.status === 'in_transit'
       ? letter.recipients.includes('STP Feedback AI')
         ? 'STP Feedback AI is drafting a reply'
-        : 'Sent - reply pending'
-      : letter.status === 'replied'
-        ? letter.isNew ? 'New feedback received' : 'Feedback received'
-        : 'Sent'
+        : 'Waiting for a reply'
+      : `Sent to ${letter.personName}`
 
   return (
     <motion.div
@@ -277,7 +275,7 @@ function LetterCard({
               <p className="truncate text-sm font-semibold leading-snug text-foreground">{letter.lesson}</p>
               {letter.relationship !== 'shared' && (
                 <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
-                  {letter.relationship === 'toRespond' ? 'Waiting for your feedback' : `Sent to ${letter.personName}`}
+                  {descriptionText}
                 </p>
               )}
             </div>
@@ -293,26 +291,6 @@ function LetterCard({
               )}
           </div>
 
-          {/* Status */}
-          <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
-            <motion.span
-              className={cn(
-              'w-1.5 h-1.5 rounded-full shrink-0',
-              letter.status === 'in_transit' ? 'bg-amber-400 animate-pulse' :
-              letter.status === 'replied' ? 'bg-blue-500' : 'bg-emerald-500'
-              )}
-              animate={isNewReply ? { scale: [1, 1.6, 1], opacity: [1, 0.55, 1] } : {}}
-              transition={{ duration: 1.35, repeat: Infinity, ease: 'easeInOut' }}
-            />
-            <span className={cn(
-              'text-[10px] font-semibold',
-              letter.relationship === 'toRespond' ? 'text-primary' :
-              letter.status === 'in_transit' ? 'text-amber-600' :
-              letter.status === 'replied' ? 'text-blue-600' : 'text-emerald-600'
-            )}>
-              {statusText}
-            </span>
-          </div>
         </div>
 
         {/* Stamp thumbnail */}

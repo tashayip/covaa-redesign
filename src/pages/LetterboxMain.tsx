@@ -199,19 +199,22 @@ const PROCESS_STEPS = [
 
 function Step1({ onNext }: { onNext: () => void }) {
   return (
-    <div className="animate-fade-up space-y-5">
-        <div className="space-y-3">
+    <div className="animate-fade-up space-y-6">
+        <div className="space-y-4">
           {PROCESS_STEPS.map((s, i) => (
-            <div key={s.label} className="flex items-start gap-4 p-4 rounded-xl bg-white border border-border">
-              <div className="w-9 h-9 shrink-0 rounded-full bg-muted flex items-center justify-center text-lg">
+            <div
+              key={s.label}
+              className="flex min-h-[132px] items-start gap-5 rounded-xl border border-border bg-white p-6 shadow-[0_10px_28px_rgba(0,0,0,0.07)]"
+            >
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary/10 text-2xl">
                 {s.icon}
               </div>
-              <div className="pt-0.5">
-                <p className="text-sm font-semibold text-foreground">
-                  <span className="text-muted-foreground font-normal mr-1.5">{i + 1}.</span>
+              <div className="pt-1">
+                <p className="text-base font-semibold leading-snug text-foreground">
+                  <span className="mr-2 text-sm font-semibold text-primary">{i + 1}.</span>
                   {s.label}
                 </p>
-                <p className="text-xs text-muted-foreground mt-0.5">{s.desc}</p>
+                <p className="mt-2 max-w-[48ch] text-sm leading-relaxed text-muted-foreground">{s.desc}</p>
               </div>
             </div>
           ))}
