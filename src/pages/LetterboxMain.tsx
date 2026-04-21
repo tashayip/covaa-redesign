@@ -638,7 +638,7 @@ export function LetterboxMain() {
   }
 
   const pageTitle =
-    flow === 'transit'  ? 'All Feedback' :
+    flow === 'transit'  ? "Welcome, here's all your feedback" :
     flow === 'discover' ? 'From the community' :
     wizardStep === 1 ? 'How does this work?' :
     wizardStep === 2 ? 'Who would you like feedback from?' :
